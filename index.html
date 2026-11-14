@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulatori di Reazioni Organiche — 5ASA</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #7c3aed;
+      --accent-hover: #6d28d9;
+      --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 50%, #f5f3ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 960px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      margin-bottom: 0.9rem;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.12);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .icon-sn {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .icon-sear {
+      background: #ede9fe;
+      color: #6d28d9;
+    }
+
+    .card h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tag {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      text-decoration: none;
+      color: #ffffff;
+      transition: background-color 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Chimica Organica Interattiva • 5ASA</span>
+      <h1>Simulatori di Reazioni Organiche</h1>
+      <p>Scegli il simulatore per esercitarti su meccanismi, selettività, catalizzatori e sintesi multi-stadio.</p>
+    </header>
+
+    <main class="grid">
+      <article class="card">
+        <div>
+          <div class="card-icon icon-sn">⚗️</div>
+          <h2>Sostituzione Nucleofila &amp; Eliminazione</h2>
+          <p>Analizza substrato, nucleofilo/base, solvente e temperatura per prevedere il meccanismo dominante tra S<sub>N</sub>1, S<sub>N</sub>2, E1 ed E2 e i relativi prodotti.</p>
+          <div class="tags">
+            <span class="tag">S<sub>N</sub>1 / S<sub>N</sub>2</span>
+            <span class="tag">E1 / E2</span>
+            <span class="tag">Stereochimica</span>
+            <span class="tag">Competizione</span>
+          </div>
+        </div>
+        <a class="btn btn-primary" href="simulatore_sn_e.html">Apri Simulatore S<sub>N</sub> / E →</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="card-icon icon-sear">⬡</div>
+          <h2>Sostituzione Elettrofila Aromatica (S<sub>E</sub>Ar)</h2>
+          <p>Simula reazioni sul benzene e derivati fino a 4 sostituenti: scegli reattivo e catalizzatore, formula ipotesi su attivazione e orientazione, e visualizza la formula topologica.</p>
+          <div class="tags">
+            <span class="tag">Benzene &amp; Derivati</span>
+            <span class="tag">Sintesi a 4 stadi</span>
+            <span class="tag">Orto / Meta / Para</span>
+            <span class="tag">Topologica</span>
+          </div>
+        </div>
+        <a class="btn btn-accent" href="simulatore_sear_benzene.html">Apri Simulatore S<sub>E</sub>Ar →</a>
+      </article>
+    </main>
+
+    <footer>
+      Simulatori didattici standalone HTML5 — utilizzabili direttamente da browser.
+    </footer>
+  </div>
+</body>
+</html>
