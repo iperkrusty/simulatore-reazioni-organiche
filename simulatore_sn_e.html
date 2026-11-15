@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulatore Reazioni Organiche — SN1, SN2, E1, E2 (5ASA)</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --accent: #7c3aed;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      color: #fff;
+      padding: 18px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 2px 10px rgba(30, 58, 138, 0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      margin: 2px 0 0;
+      font-size: 0.88rem;
+      opacity: 0.9;
+    }
+
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+    }
+    .mode-toggle input { cursor: pointer; }
+
+    main {
+      max-width: 1240px;
+      margin: 20px auto;
+      padding: 0 16px 40px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #0f172a;
+    }
+
+    .step-badge {
+      background: var(--primary);
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.93rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .hint-box {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #475569;
+      background: #f8fafc;
+      border-left: 3px solid var(--primary);
+      padding: 6px 9px;
+      border-radius: 0 6px 6px 0;
+    }
+    .hidden { display: none !important; }
+
+    .hyp-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .hyp-btn {
+      padding: 10px 8px;
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .hyp-btn small {
+      display: block;
+      font-weight: 400;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .hyp-btn:hover { border-color: #93c5fd; background: var(--primary-light); }
+    .hyp-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: #1d4ed8;
+    }
+    .hyp-btn.full-span { grid-column: 1 / -1; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-size: 0.98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: #f8fafc; }
+    .btn-secondary.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Right column */
+    .stage-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .bench-preview {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+    }
+
+    .reaction-equation {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      width: 100%;
+      justify-content: center;
+      padding: 10px 6px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .pill.substrate { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .pill.nucleophile { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
+    .pill.solvent { background: #ecfeff; border-color: #a5f3fc; color: #155e75; }
+    .pill.temp { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+
+    .arrow-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .arrow-block span.arrow { font-size: 1.5rem; line-height: 1; color: #334155; }
+
+    .result-banner {
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid;
+      margin-bottom: 14px;
+    }
+    .result-banner.ok { background: var(--success-bg); border-color: #86efac; color: #14532d; }
+    .result-banner.partial { background: var(--warn-bg); border-color: #fcd34d; color: #78350f; }
+    .result-banner.ko { background: var(--danger-bg); border-color: #fca5a5; color: #7f1d1d; }
+
+    .result-banner h3 { margin: 0 0 4px; font-size: 1.05rem; }
+    .result-banner p { margin: 0; font-size: 0.9rem; }
+
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    @media (max-width: 780px) {
+      .viz-grid { grid-template-columns: 1fr; }
+    }
+
+    .svg-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fcfdff;
+      padding: 10px;
+    }
+    .svg-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .svg-controls strong { font-size: 0.86rem; color: #334155; }
+
+    .comp-bars { margin-top: 10px; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.84rem;
+    }
+    .bar-label { width: 54px; font-weight: 700; }
+    .bar-track {
+      flex: 1;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .bar-pct { width: 40px; text-align: right; font-weight: 600; color: var(--muted); }
+
+    .criteria-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 640px) { .criteria-list { grid-template-columns: 1fr; } }
+    .crit-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+    }
+    .crit-item strong { display: block; color: #0f172a; margin-bottom: 2px; }
+
+    table.history {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    table.history th, table.history td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.history th { color: var(--muted); font-weight: 600; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .tag.ok { background: #dcfce7; color: #166534; }
+    .tag.ko { background: #fee2e2; color: #991b1b; }
+    .tag.partial { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🧪 Simulatore di Reazioni Organiche — Classe 5ASA</h1>
+    <p>Sostituzione Nucleofila (S<sub>N</sub>1 / S<sub>N</sub>2) ed Eliminazione (E1 / E2) degli alogenuri</p>
+  </div>
+  <label class="mode-toggle" title="Mostra o nascondi i suggerimenti su forza del nucleofilo, tipo di solvente, ecc.">
+    <input type="checkbox" id="studyModeToggle" />
+    <span>Modalità Studio (mostra proprietà)</span>
+  </label>
+</header>
+
+<main>
+  <!-- COLONNA SINISTRA: SCELTA REAGENTI & IPOTESI -->
+  <section class="card">
+    <h2><span class="step-badge">1</span> Scegli reagenti e condizioni</h2>
+
+    <div class="field">
+      <label for="substrateSelect">Substrato (Alogenuro)</label>
+      <select id="substrateSelect"></select>
+      <div id="substrateHint" class="hint-box hidden"></div>
+    </div>
+
+    <div class="field">
+      <label for="nucleophileSelect">Nucleofilo / Base</label>
+      <select id="nucleophileSelect"></select>
+      <div id="nucleophileHint" class="hint-box hidden"></div>
+    </div>
+
+    <div class="field">
+      <label for="solventSelect">Solvente</label>
+      <select id="solventSelect"></select>
+      <div id="solventHint" class="hint-box hidden"></div>
+    </div>
+
+    <div class="field">
+      <label for="conditionSelect">Temperatura / Catalizzatore</label>
+      <select id="conditionSelect"></select>
+      <div id="conditionHint" class="hint-box hidden"></div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;" />
+
+    <h2><span class="step-badge">2</span> Formula la tua ipotesi</h2>
+    <div class="hyp-grid" id="hypGrid">
+      <button type="button" class="hyp-btn" data-hyp="SN2">S<sub>N</sub>2<small>Sostituzione bimolecolare</small></button>
+      <button type="button" class="hyp-btn" data-hyp="SN1">S<sub>N</sub>1<small>Sostituzione unimolecolare</small></button>
+      <button type="button" class="hyp-btn" data-hyp="E2">E2<small>Eliminazione bimolecolare</small></button>
+      <button type="button" class="hyp-btn" data-hyp="E1">E1<small>Eliminazione unimolecolare</small></button>
+      <button type="button" class="hyp-btn full-span" data-hyp="NONE">Nessuna reazione (C sp² non reattivo)<small>Alogenuro vinilico o arilico</small></button>
+    </div>
+
+    <div class="field">
+      <label for="studentNote">Motivazione dello studente (opzionale)</label>
+      <textarea id="studentNote" rows="2" placeholder="Es. Substrato terziario con base forte ingombrata..."></textarea>
+    </div>
+
+    <button type="button" class="btn-primary" id="runBtn">Verifica Ipotesi &amp; Simula</button>
+  </section>
+
+  <!-- COLONNA DESTRA: BANCO DI REAZIONE, RISULTATO & ANIMAZIONE -->
+  <section class="stage-stack">
+    <div class="card bench-preview">
+      <div class="reaction-equation" id="equationBar"></div>
+    </div>
+
+    <div class="card" id="resultCard">
+      <h2><span class="step-badge">3</span> Risultato, Meccanismo e Diagramma Energetico</h2>
+      <div id="emptyState" style="color:var(--muted);font-size:0.93rem;">
+        Seleziona i reagenti a sinistra, scegli la tua ipotesi (S<sub>N</sub>1, S<sub>N</sub>2, E1, E2 o Nessuna reazione) e clicca <strong>Verifica Ipotesi &amp; Simula</strong>.
+      </div>
+
+      <div id="resultContent" class="hidden">
+        <div id="resultBanner" class="result-banner"></div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#f8fafc;padding:10px 14px;border-radius:9px;border:1px solid var(--border);">
+          <div>
+            <div style="font-size:0.78rem;color:var(--muted);text-transform:uppercase;font-weight:700;">Prodotto principale &amp; Stereochimica / Regioselettività</div>
+            <div id="productSummary" style="font-weight:700;font-size:0.98rem;color:#0f172a;"></div>
+          </div>
+        </div>
+
+        <div class="comp-bars" id="compBars"></div>
+
+        <div class="viz-grid">
+          <div class="svg-box">
+            <div class="svg-controls">
+              <strong>Meccanismo (Frecce curve)</strong>
+              <div style="display:flex;gap:5px;">
+                <button type="button" class="btn-secondary active" data-step="0">Stadio 1</button>
+                <button type="button" class="btn-secondary" data-step="1">Stadio 2 / TS</button>
+                <button type="button" class="btn-secondary" data-step="2">Prodotti</button>
+              </div>
+            </div>
+            <svg id="mechSvg" viewBox="0 0 460 220" width="100%" height="220"></svg>
+            <div id="mechCaption" style="font-size:0.82rem;color:#475569;margin-top:4px;"></div>
+          </div>
+
+          <div class="svg-box">
+            <div class="svg-controls">
+              <strong>Profilo Energetico (ΔG)</strong>
+              <span id="kineticLabel" style="font-size:0.78rem;color:var(--primary);font-weight:700;"></span>
+            </div>
+            <svg id="energySvg" viewBox="0 0 320 220" width="100%" height="220"></svg>
+          </div>
+        </div>
+
+        <div class="criteria-list" id="criteriaList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="margin:0;">📋 Registro Esperimenti (Sessione corrente)</h2>
+        <button type="button" class="btn-secondary" id="clearHistoryBtn">Pulisci</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="history">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Substrato + Reagente</th>
+              <th>Solvente / Cond.</th>
+              <th>Ipotesi</th>
+              <th>Esito Reale</th>
+              <th>Valutazione</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr><td colspan="6" style="color:var(--muted);">Nessun esperimento registrato ancora.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// =========================================================
+// DATI CHIMICI ALLINEATI AGLI APPUNTI (CAP. 4.9, 4.12, 4.13, 12.3)
+// =========================================================
+const SUBSTRATES = [
+  {
+    id: 'ch3br',
+    name: 'Bromometano (CH₃Br)',
+    formula: 'CH₃–Br',
+    type: 'metilico',
+    hyb: 'sp3',
+    hasBetaH: false,
+    chiral: false,
+    lg: 'Br⁻ (buon gruppo uscente)',
+    hint: 'Substrato metilico (nessun carbonio β, ingombro sterico minimo). Carbocatione metilico troppo instabile.'
+  },
+  {
+    id: 'etbr',
+    name: 'Bromoetano (CH₃CH₂Br)',
+    formula: 'CH₃–CH₂–Br',
+    type: 'primario',
+    hyb: 'sp3',
+    hasBetaH: true,
+    chiral: false,
+    lg: 'Br⁻ (buon gruppo uscente)',
+    hint: 'Alogenuro primario poco ingombrato, possiede idrogeni in β.'
+  },
+  {
+    id: 'neopentilbr',
+    name: '1-Bromo-2,2-dimetilpropano (Neopentil bromuro)',
+    formula: '(CH₃)₃C–CH₂–Br',
+    type: 'primario_ingombrato',
+    hyb: 'sp3',
+    hasBetaH: false,
+    chiral: false,
+    lg: 'Br⁻ (buon gruppo uscente)',
+    hint: 'Alogenuro primario ma con fortissimo ingombro sterico (neopentilico: ~10⁵ volte più lento in SN2) e nessun H in β!'
+  },
+  {
+    id: '2brbut',
+    name: '(R)-2-Bromobutano',
+    formula: 'CH₃–CH(Br)–CH₂CH₃',
+    type: 'secondario',
+    hyb: 'sp3',
+    hasBetaH: true,
+    chiral: true,
+    lg: 'Br⁻ (buon gruppo uscente)',
+    hint: 'Alogenuro secondario chirale: zona di competizione tra SN2, SN1, E2 ed E1 a seconda di nucleofilo, solvente e T.'
+  },
+  {
+    id: 'tbucl',
+    name: '2-Bromo-2-metilbutano (terziario)',
+    formula: 'CH₃–C(CH₃)(Br)–CH₂CH₃',
+    type: 'terziario',
+    hyb: 'sp3',
+    hasBetaH: true,
+    chiral: false,
+    lg: 'Br⁻ (buon gruppo uscente)',
+    hint: 'Alogenuro terziario: accesso frontale/posteriore bloccato per SN2; forma carbocatione 3° stabile e ha H in β non equivalenti (regola di Zaitsev).'
+  },
+  {
+    id: 'allilcl',
+    name: '3-Cloropropene (Cloruro di allile)',
+    formula: 'CH₂=CH–CH₂–Cl',
+    type: 'allilico',
+    hyb: 'sp3',
+    hasBetaH: true,
+    chiral: false,
+    lg: 'Cl⁻ (buon gruppo uscente)',
+    hint: 'Alogenuro allilico (C sp³ adiacente a C=C): molto reattivo sia in SN2 che in SN1 (carbocatione allilico stabilizzato per risonanza).'
+  },
+  {
+    id: 'clbenz',
+    name: 'Clorobenzene / Cloroetene (C sp²)',
+    formula: 'C₆H₅–Cl  (o  CH₂=CH–Cl)',
+    type: 'arilico_vinilico',
+    hyb: 'sp2',
+    hasBetaH: true,
+    chiral: false,
+    lg: 'Cl⁻ legato a C sp²',
+    hint: 'Carbonio ibridato sp² (arilico o vinilico): legame C–Cl più corto e forte, nuvola π che respinge il nucleofilo.'
+  }
+];
+
+const NUCLEOPHILES = [
+  {
+    id: 'iodide',
+    name: 'I⁻ (da NaI / KI)',
+    formula: 'I⁻',
+    nucStrength: 'forte',
+    baseStrength: 'debole',
+    bulky: false,
+    hint: 'Nucleofilo molto forte (specie grande e polarizzabile) e base coniugata di HI (base debolissima).'
+  },
+  {
+    id: 'hs',
+    name: 'HS⁻ (da NaSH)',
+    formula: 'HS⁻',
+    nucStrength: 'forte',
+    baseStrength: 'debole',
+    bulky: false,
+    hint: 'Nucleofilo forte (zolfo polarizzabile) e base debole.'
+  },
+  {
+    id: 'cn',
+    name: 'CN⁻ (da NaCN)',
+    formula: 'CN⁻',
+    nucStrength: 'forte',
+    baseStrength: 'debole',
+    bulky: false,
+    hint: 'Ottimo nucleofilo, base moderatamente debole (acido coniugato HCN, pKa ~ 9.1).'
+  },
+  {
+    id: 'oh',
+    name: 'OH⁻ (da NaOH / KOH)',
+    formula: 'OH⁻',
+    nucStrength: 'forte',
+    baseStrength: 'forte',
+    bulky: false,
+    hint: 'Sia nucleofilo forte che base forte, di piccole dimensioni.'
+  },
+  {
+    id: 'eto',
+    name: 'CH₃CH₂O⁻ (Etossido di sodio)',
+    formula: 'EtO⁻',
+    nucStrength: 'forte',
+    baseStrength: 'forte',
+    bulky: false,
+    hint: 'Base forte e buon nucleofilo (piccole dimensioni).'
+  },
+  {
+    id: 'tbuo',
+    name: '(CH₃)₃CO⁻ (Terz-butossido di potassio)',
+    formula: 't-BuO⁻',
+    nucStrength: 'debole',
+    baseStrength: 'forte',
+    bulky: true,
+    hint: 'Base molto forte ma stericamente ingombrata: nucleofilia drasticamente ridotta!'
+  },
+  {
+    id: 'h2o',
+    name: 'H₂O (Acqua)',
+    formula: 'H₂O',
+    nucStrength: 'debole',
+    baseStrength: 'debole',
+    bulky: false,
+    hint: 'Nucleofilo debole e base debole (reazioni di solvolisi).'
+  },
+  {
+    id: 'etoh',
+    name: 'CH₃CH₂OH (Etanolo)',
+    formula: 'EtOH',
+    nucStrength: 'debole',
+    baseStrength: 'debole',
+    bulky: false,
+    hint: 'Nucleofilo debole e base debole (reazioni di solvolisi).'
+  }
+];
+
+const SOLVENTS = [
+  {
+    id: 'dmso',
+    name: 'DMSO (Dimetilsolfossido)',
+    type: 'aprotico',
+    hint: 'Solvente polare aprotico: solvata il catione e lascia il nucleofilo anionico "nudo" e molto reattivo (favorisce SN2).'
+  },
+  {
+    id: 'acetone',
+    name: 'Acetone / DMF',
+    type: 'aprotico',
+    hint: 'Solvente polare aprotico: non forma legami a idrogeno con il nucleofilo anionico.'
+  },
+  {
+    id: 'protic_h2o',
+    name: 'Acqua / Miscela H₂O-EtOH',
+    type: 'protico',
+    hint: 'Solvente polare protico: stabilizza carbocationi e gruppi uscenti tramite interazioni ione-dipolo e legami H (favorisce SN1/E1).'
+  },
+  {
+    id: 'protic_etoh',
+    name: 'Etanolo (CH₃CH₂OH)',
+    type: 'protico',
+    hint: 'Solvente polare protico: solvata anioni piccoli riducendone la nucleofilia, stabilizza ioni in SN1/E1.'
+  }
+];
+
+const CONDITIONS = [
+  {
+    id: 'rt',
+    name: 'Temperatura ambiente (25 °C)',
+    heat: false,
+    crown: false,
+    hint: 'Condizioni blande: non favorisce eccessivamente l\'eliminazione rispetto alla sostituzione.'
+  },
+  {
+    id: 'heat',
+    name: 'Riscaldamento (Δ, 60–80 °C)',
+    heat: true,
+    crown: false,
+    hint: 'Le alte temperature favoriscono l\'eliminazione (E1 / E2) rispetto alla sostituzione (ΔS° positivo).'
+  },
+  {
+    id: 'crown',
+    name: 'Catalisi trasferimento di fase / 18-crown-6 (25 °C)',
+    heat: false,
+    crown: true,
+    hint: 'Sequestra il catione (es. K⁺/Na⁺) lasciando l\'anione nucleofilo completamente "nudo" e reattivo (potenzia SN2).'
+  }
+];
+
+// =========================================================
+// MOTORE DI VALUTAZIONE CHIMICA
+// =========================================================
+function evaluateReaction(sub, nuc, solv, cond) {
+  // 1. Carbonio sp2
+  if (sub.hyb === 'sp2') {
+    return {
+      primary: 'NONE',
+      accepted: ['NONE'],
+      scores: { SN2: 0, SN1: 0, E2: 0, E1: 0 },
+      productText: 'Nessuna reazione in condizioni standard (il legame C(sp²)–Cl è troppo forte e la nuvola π respinge il nucleofilo).',
+      kinetic: 'Nessuna reazione',
+      reasons: {
+        sub: 'Carbonio ibridato sp² (arilico/vinilico): non dà né SN1/SN2 né E1/E2 in condizioni ordinarie (§ 4.9 e § 12.4-12.5).',
+        nuc: `Il reagente ${nuc.formula} non riesce ad attaccare il carbonio sp².`,
+        solv: `Il solvente ${solv.name} non modifica l'inerzia del legame C(sp²)–X.`,
+        cond: cond.heat ? 'Anche a caldo, gli alogenuri arilici/vinilici richiedono condizioni estreme (es. fusione alcalina) per reagire.' : 'Nessuna reazione a 25 °C.'
+      }
+    };
+  }
+
+  let s = { SN2: 0, SN1: 0, E2: 0, E1: 0 };
+
+  // Compatibilità base con substrato
+  if (sub.type === 'metilico') {
+    s.SN1 = 0; s.E1 = 0; s.E2 = 0;
+    s.SN2 = (nuc.nucStrength === 'forte' || !nuc.bulky) ? 95 : 40;
+    if (nuc.nucStrength === 'debole' && !nuc.bulky) s.SN2 = 25;
+  } else if (sub.type === 'primario') {
+    s.SN1 = 0; s.E1 = 0;
+    if (nuc.bulky) {
+      // terz-butossido su primario -> E2 prevalente
+      s.E2 = 88; s.SN2 = 12;
+    } else if (nuc.nucStrength === 'forte' && nuc.baseStrength === 'debole') {
+      s.SN2 = 96; s.E2 = 4;
+    } else if (nuc.nucStrength === 'forte' && nuc.baseStrength === 'forte') {
+      // es. EtO- + EtBr -> 90% SN2, 10% E2 (da appunti p.343!)
+      s.SN2 = cond.heat ? 75 : 90;
+      s.E2 = cond.heat ? 25 : 10;
+    } else {
+      // nucleofilo debole su primario: lentissima SN2
+      s.SN2 = 75; s.E2 = 15;
+    }
+  } else if (sub.type === 'primario_ingombrato') {
+    // Neopentil bromuro: niente beta-H, SN2 lentissima (10^5 volte più lenta)
+    s.E2 = 0; s.E1 = 0;
+    if (nuc.nucStrength === 'forte' && !nuc.bulky && (solv.type === 'aprotico' || cond.crown)) {
+      s.SN2 = 70; s.SN1 = 30;
+    } else {
+      s.SN1 = 60; s.SN2 = 40; // con trasposizione eventuale
+    }
+  } else if (sub.type === 'secondario') {
+    if (nuc.bulky) {
+      s.E2 = 95; s.SN2 = 5;
+    } else if (nuc.nucStrength === 'forte' && nuc.baseStrength === 'debole') {
+      s.SN2 = (solv.type === 'aprotico' || cond.crown) ? 92 : 78;
+      s.E2 = 8;
+      s.SN1 = solv.type === 'protico' ? 14 : 0;
+    } else if (nuc.nucStrength === 'forte' && nuc.baseStrength === 'forte') {
+      // Da appunti p.343: EtO- + 2-bromopropano a 55°C -> 79% E2, 21% SN2
+      if (cond.heat || solv.type === 'protico') {
+        s.E2 = 79; s.SN2 = 21;
+      } else {
+        s.E2 = 55; s.SN2 = 45;
+      }
+    } else {
+      // Nucleofilo/base debole su secondario -> SN1 / E1 (lenta)
+      if (solv.type === 'protico') {
+        s.SN1 = cond.heat ? 35 : 75;
+        s.E1 = cond.heat ? 65 : 25;
+      } else {
+        s.SN2 = 55; s.SN1 = 30; s.E1 = 15;
+      }
+    }
+  } else if (sub.type === 'terziario') {
+    s.SN2 = 0; // impedita stericamente
+    if (nuc.baseStrength === 'forte') {
+      // Da appunti p.343: EtO- + terz-butilbromuro -> 91% E2, 9% SN1
+      s.E2 = 91; s.SN1 = 9;
+    } else if (nuc.nucStrength === 'forte' && nuc.baseStrength === 'debole') {
+      // I-, HS-, CN- su 3° in protico -> SN1 (+ E1 se caldo)
+      s.SN1 = cond.heat ? 40 : 85;
+      s.E1 = cond.heat ? 60 : 15;
+    } else {
+      // Nucleofilo/base debole (H2O, EtOH) su 3° -> competizione SN1 / E1
+      s.SN1 = cond.heat ? 25 : 80;
+      s.E1 = cond.heat ? 75 : 20;
+    }
+  } else if (sub.type === 'allilico') {
+    if (nuc.nucStrength === 'forte' && !nuc.bulky) {
+      s.SN2 = 88; s.SN1 = 12;
+    } else if (nuc.bulky) {
+      s.E2 = 75; s.SN2 = 25;
+    } else {
+      s.SN1 = cond.heat ? 65 : 85;
+      s.E1 = cond.heat ? 35 : 15;
+    }
+  }
+
+  // Normalizza a 100
+  const total = s.SN2 + s.SN1 + s.E2 + s.E1 || 1;
+  const pct = {
+    SN2: Math.round((s.SN2 / total) * 100),
+    SN1: Math.round((s.SN1 / total) * 100),
+    E2: Math.round((s.E2 / total) * 100),
+    E1: Math.round((s.E1 / total) * 100)
+  };
+  // Correggi arrotondamento
+  const diff = 100 - (pct.SN2 + pct.SN1 + pct.E2 + pct.E1);
+  const topKey = Object.keys(pct).sort((a, b) => pct[b] - pct[a])[0];
+  pct[topKey] += diff;
+
+  const sorted = Object.entries(pct).sort((a, b) => b[1] - a[1]);
+  const primary = sorted[0][0];
+  const accepted = [primary];
+  if (sorted[1][1] >= 25) accepted.push(sorted[1][0]);
+
+  // Testo prodotti e stereochimica
+  let productText = '';
+  if (primary === 'SN2') {
+    productText = `Sostituzione con attacco dal retro: ${sub.chiral ? 'Inversione completa di configurazione (Inversione di Walden: da (R) a (S))' : 'prodotto di sostituzione diretto senza trasposizioni'}.`;
+  } else if (primary === 'SN1') {
+    productText = `Sostituzione via carbocatione planare sp²: ${sub.chiral ? 'Racemizzazione (50% (R) + 50% (S))' : sub.type === 'primario_ingombrato' ? 'possibile trasposizione 1,2-alchile!' : 'prodotto di sostituzione'}.`;
+  } else if (primary === 'E2') {
+    const regio = nuc.bulky
+      ? 'Alchene meno sostituito (regola di Hofmann, base ingombrata).'
+      : 'Alchene più sostituito e stereoisomero trans prevalente (regola di Zaitsev, eliminazione anti).';
+    productText = sub.hasBetaH ? `Eliminazione concertata: ${regio}` : 'Attenzione: nessun H in β disponibile per E2!';
+  } else if (primary === 'E1') {
+    productText = 'Eliminazione via carbocatione: prevale l\'alchene più sostituito (regola di Zaitsev), in competizione con SN1.';
+  }
+
+  const kinetic = (primary === 'SN2' || primary === 'E2')
+    ? 'Cinetica 2° ordine: v = k[R-X][Nu/B]'
+    : 'Cinetica 1° ordine: v = k[R-X]';
+
+  return {
+    primary,
+    accepted,
+    scores: pct,
+    productText,
+    kinetic,
+    reasons: {
+      sub: sub.hint,
+      nuc: nuc.hint,
+      solv: solv.hint,
+      cond: cond.hint
+    }
+  };
+}
+
+// =========================================================
+// RENDERING SVG MECCANISMO & PROFILO ENERGETICO
+// =========================================================
+function renderMechanismSvg(mech, step) {
+  const svg = document.getElementById('mechSvg');
+  const cap = document.getElementById('mechCaption');
+  let html = `
+    <defs>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L7,3 z" fill="#2563eb" />
+      </marker>
+      <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L7,3 z" fill="#dc2626" />
+      </marker>
+    </defs>
+  `;
+
+  if (mech === 'NONE') {
+    html += `
+      <rect x="40" y="55" width="380" height="105" rx="10" fill="#fef2f2" stroke="#fca5a5" />
+      <text x="230" y="95" text-anchor="middle" font-size="15" font-weight="700" fill="#991b1b">Carbonio sp² — Legame C–X troppo forte</text>
+      <text x="230" y="122" text-anchor="middle" font-size="13" fill="#7f1d1d">La nuvola π respinge il nucleofilo: nessuna Sₙ1, Sₙ2, E1 o E2.</text>
+    `;
+    svg.innerHTML = html;
+    cap.textContent = 'Gli alogenuri arilici e vinilici non reagiscono nelle normali condizioni di sostituzione/eliminazione.';
+    return;
+  }
+
+  if (mech === 'SN2') {
+    if (step === 0) {
+      html += `
+        <text x="55" y="115" font-size="18" font-weight="700" fill="#5b21b6">:Nu⁻</text>
+        <path d="M 98 106 Q 145 70 195 104" fill="none" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrowBlue)" />
+        <line x1="210" y1="110" x2="290" y2="110" stroke="#0f172a" stroke-width="3" />
+        <text x="200" y="116" text-anchor="middle" font-size="20" font-weight="700">C</text>
+        <text x="195" y="75" font-size="13" fill="#475569">R₁</text>
+        <line x1="200" y1="95" x2="200" y2="80" stroke="#475569" stroke-width="2" />
+        <text x="172" y="152" font-size="13" fill="#475569">R₂</text>
+        <line x1="194" y1="122" x2="182" y2="140" stroke="#475569" stroke-width="2" />
+        <text x="225" y="152" font-size="13" fill="#475569">R₃</text>
+        <line x1="206" y1="122" x2="220" y2="140" stroke="#475569" stroke-width="2" />
+        <text x="302" y="116" font-size="18" font-weight="700" fill="#dc2626">Lg</text>
+        <path d="M 250 105 Q 275 78 302 96" fill="none" stroke="#dc2626" stroke-width="2.4" marker-end="url(#arrowRed)" />
+      `;
+      cap.textContent = 'Stadio unico concertato: il nucleofilo attacca dal lato opposto rispetto al gruppo uscente Lg.';
+    } else if (step === 1) {
+      html += `
+        <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#2563eb">Stato di Transizione (Carbonio pentacoordinato sp²)</text>
+        <text x="90" y="116" font-size="17" font-weight="700" fill="#5b21b6">δ⁻ Nu</text>
+        <line x1="138" y1="110" x2="215" y2="110" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="5,4" />
+        <text x="230" y="116" text-anchor="middle" font-size="20" font-weight="700">C</text>
+        <line x1="245" y1="110" x2="320" y2="110" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="5,4" />
+        <text x="330" y="116" font-size="17" font-weight="700" fill="#dc2626">Lg δ⁻</text>
+        <line x1="230" y1="95" x2="230" y2="55" stroke="#0f172a" stroke-width="2.2" />
+        <text x="230" y="49" text-anchor="middle" font-size="13">R₁</text>
+        <line x1="230" y1="125" x2="212" y2="168" stroke="#0f172a" stroke-width="2.2" />
+        <text x="206" y="182" text-anchor="middle" font-size="13">R₂</text>
+        <line x1="230" y1="125" x2="248" y2="168" stroke="#0f172a" stroke-width="2.2" />
+        <text x="255" y="182" text-anchor="middle" font-size="13">R₃</text>
+      `;
+      cap.textContent = 'Stato di transizione bipiramidale trigonale: i 3 sostituenti sono complanari a 120°.';
+    } else {
+      html += `
+        <text x="125" y="116" font-size="18" font-weight="700" fill="#5b21b6">Nu</text>
+        <line x1="154" y1="110" x2="205" y2="110" stroke="#0f172a" stroke-width="3" />
+        <text x="220" y="116" text-anchor="middle" font-size="20" font-weight="700">C</text>
+        <line x1="224" y1="95" x2="236" y2="72" stroke="#475569" stroke-width="2" />
+        <text x="242" y="68" font-size="13">R₁</text>
+        <line x1="226" y1="122" x2="248" y2="148" stroke="#475569" stroke-width="2" />
+        <text x="256" y="158" font-size="13">R₂</text>
+        <line x1="220" y1="124" x2="220" y2="160" stroke="#475569" stroke-width="2" />
+        <text x="220" y="176" text-anchor="middle" font-size="13">R₃</text>
+        <text x="315" y="116" font-size="18" font-weight="700" fill="#dc2626">+ :Lg⁻</text>
+        <text x="230" y="205" text-anchor="middle" font-size="13" font-weight="700" fill="#16a34a">Inversione di Walden completata!</text>
+      `;
+      cap.textContent = 'I gruppi R₁, R₂, R₃ si ribaltano come un ombrello al vento (inversione di configurazione).';
+    }
+  } else if (mech === 'SN1') {
+    if (step === 0) {
+      html += `
+        <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">Stadio 1 (Lento, RDS): Distacco del gruppo uscente</text>
+        <text x="190" y="118" text-anchor="middle" font-size="20" font-weight="700">C</text>
+        <line x1="205" y1="112" x2="275" y2="112" stroke="#0f172a" stroke-width="3" />
+        <text x="292" y="118" font-size="18" font-weight="700" fill="#dc2626">Lg</text>
+        <path d="M 240 106 Q 265 76 290 98" fill="none" stroke="#dc2626" stroke-width="2.4" marker-end="url(#arrowRed)" />
+        <text x="145" y="88" font-size="13">R₁</text><line x1="180" y1="104" x2="158" y2="88" stroke="#475569" stroke-width="2"/>
+        <text x="145" y="148" font-size="13">R₂</text><line x1="180" y1="120" x2="158" y2="142" stroke="#475569" stroke-width="2"/>
+        <text x="190" y="164" text-anchor="middle" font-size="13">R₃</text><line x1="190" y1="124" x2="190" y2="150" stroke="#475569" stroke-width="2"/>
+      `;
+      cap.textContent = 'Il legame C–Lg si rompe eteroliticamente grazie alla solvatazione del solvente polare protico.';
+    } else if (step === 1) {
+      html += `
+        <text x="230" y="32" text-anchor="middle" font-size="13" font-weight="700" fill="#7c3aed">Intermedio Carbocationico planare sp² (orbitale p vuoto)</text>
+        <ellipse cx="230" cy="80" rx="14" ry="26" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" />
+        <ellipse cx="230" cy="144" rx="14" ry="26" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5" />
+        <text x="230" y="118" text-anchor="middle" font-size="20" font-weight="700">C⁺</text>
+        <text x="85" y="118" font-size="16" font-weight="700" fill="#5b21b6">:Nu⁻</text>
+        <path d="M 122 108 Q 160 72 212 85" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+        <text x="345" y="118" font-size="16" font-weight="700" fill="#5b21b6">:Nu⁻</text>
+        <path d="M 340 124 Q 300 156 248 142" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+      `;
+      cap.textContent = 'Stadio 2 (Veloce): il nucleofilo può attaccare entrambi i lobi dell\'orbitale p vuoto (50% / 50%).';
+    } else {
+      html += `
+        <text x="230" y="75" text-anchor="middle" font-size="16" font-weight="700" fill="#16a34a">Miscela Racemica (50% R + 50% S)</text>
+        <text x="140" y="125" text-anchor="middle" font-size="16" font-weight="700">Nu–C(R₁R₂R₃)</text>
+        <text x="230" y="125" text-anchor="middle" font-size="16">+</text>
+        <text x="320" y="125" text-anchor="middle" font-size="16" font-weight="700">(R₁R₂R₃)C–Nu</text>
+        <text x="230" y="165" text-anchor="middle" font-size="13" fill="#475569">+ :Lg⁻ (solvatato)</text>
+      `;
+      cap.textContent = 'Se il carbonio era chirale, si ottiene racemizzazione (perdita di attività ottica).';
+    }
+  } else if (mech === 'E2') {
+    if (step === 0) {
+      html += `
+        <text x="230" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">Stadio unico concertato (Eliminazione Anti-periplanare)</text>
+        <text x="72" y="78" font-size="17" font-weight="700" fill="#5b21b6">:B⁻</text>
+        <text x="155" y="75" font-size="17" font-weight="700" fill="#2563eb">H</text>
+        <line x1="162" y1="82" x2="162" y2="112" stroke="#0f172a" stroke-width="2.5" />
+        <text x="162" y="130" text-anchor="middle" font-size="19" font-weight="700">C<tspan font-size="11" dy="4">β</tspan></text>
+        <line x1="176" y1="124" x2="274" y2="124" stroke="#0f172a" stroke-width="3" />
+        <text x="290" y="130" text-anchor="middle" font-size="19" font-weight="700">C<tspan font-size="11" dy="4">α</tspan></text>
+        <line x1="290" y1="138" x2="290" y2="170" stroke="#0f172a" stroke-width="2.5" />
+        <text x="290" y="188" text-anchor="middle" font-size="17" font-weight="700" fill="#dc2626">Lg</text>
+        <path d="M 102 70 Q 125 54 146 68" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+        <path d="M 166 96 Q 200 100 225 118" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+        <path d="M 296 154 Q 318 164 306 180" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arrowRed)" />
+      `;
+      cap.textContent = 'La base strappa Hβ mentre si forma il doppio legame C=C ed esce Lg⁻ dal lato opposto (anti).';
+    } else if (step === 1) {
+      html += `
+        <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">Stato di Transizione E2 (parziale doppio legame)</text>
+        <text x="115" y="75" font-size="16" fill="#5b21b6">B···H</text>
+        <line x1="162" y1="80" x2="162" y2="112" stroke="#94a3b8" stroke-width="2.2" stroke-dasharray="4,3" />
+        <text x="162" y="130" text-anchor="middle" font-size="19" font-weight="700">C</text>
+        <line x1="176" y1="121" x2="274" y2="121" stroke="#0f172a" stroke-width="2.5" />
+        <line x1="176" y1="128" x2="274" y2="128" stroke="#2563eb" stroke-width="2.2" stroke-dasharray="5,4" />
+        <text x="290" y="130" text-anchor="middle" font-size="19" font-weight="700">C</text>
+        <line x1="290" y1="138" x2="290" y2="170" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4,3" />
+        <text x="290" y="188" text-anchor="middle" font-size="16" fill="#dc2626">Lg δ⁻</text>
+      `;
+      cap.textContent = 'Tre legami cambiano contemporaneamente: C–H si rompe, C=C si forma, C–Lg si rompe.';
+    } else {
+      html += `
+        <text x="230" y="115" text-anchor="middle" font-size="22" font-weight="700" fill="#16a34a">C = C   +   B–H   +   :Lg⁻</text>
+        <text x="230" y="150" text-anchor="middle" font-size="13" fill="#475569">Alchene (prevale il più sostituito secondo Zaitsev, salvo basi molto ingombrate).</text>
+      `;
+      cap.textContent = 'Formazione del doppio legame C=C (ibridazione da sp³ a sp²).';
+    }
+  } else if (mech === 'E1') {
+    if (step === 0) {
+      html += `
+        <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#dc2626">Stadio 1 (Lento, RDS): Formazione del carbocatione</text>
+        <text x="165" y="122" text-anchor="middle" font-size="19" font-weight="700">H–C–C–Lg</text>
+        <path d="M 190 105 Q 212 78 232 102" fill="none" stroke="#dc2626" stroke-width="2.2" marker-end="url(#arrowRed)" />
+        <text x="230" y="160" text-anchor="middle" font-size="13" fill="#475569">Identico al 1° stadio della Sₙ1!</text>
+      `;
+      cap.textContent = 'Il gruppo uscente si stacca formando l\'intermedio carbocationico.';
+    } else if (step === 1) {
+      html += `
+        <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#d97706">Stadio 2 (Veloce): Base debole estrae Hβ dal carbocatione</text>
+        <text x="100" y="80" font-size="16" font-weight="700" fill="#5b21b6">:B</text>
+        <text x="165" y="80" font-size="16" font-weight="700" fill="#2563eb">H</text>
+        <line x1="168" y1="86" x2="168" y2="112" stroke="#0f172a" stroke-width="2.2" />
+        <text x="168" y="130" text-anchor="middle" font-size="19" font-weight="700">C</text>
+        <line x1="182" y1="124" x2="262" y2="124" stroke="#0f172a" stroke-width="2.8" />
+        <text x="278" y="130" text-anchor="middle" font-size="19" font-weight="700">C⁺</text>
+        <path d="M 122 72 Q 140 58 156 72" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+        <path d="M 172 98 Q 202 102 224 118" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrowBlue)" />
+      `;
+      cap.textContent = 'Una base debole (spesso il solvente) rimuove un protone in β formando l\'alchene più stabile (Zaitsev).';
+    } else {
+      html += `
+        <text x="230" y="115" text-anchor="middle" font-size="22" font-weight="700" fill="#16a34a">C = C   +   BH⁺   +   :Lg⁻</text>
+        <text x="230" y="150" text-anchor="middle" font-size="13" fill="#475569">Alchene secondo Zaitsev (spesso in miscela con il prodotto di Sₙ1).</text>
+      `;
+      cap.textContent = 'L\'eliminazione E1 compete sempre con la sostituzione Sₙ1 ed è favorita dal riscaldamento.';
+    }
+  }
+  svg.innerHTML = html;
+}
+
+function renderEnergySvg(mech) {
+  const svg = document.getElementById('energySvg');
+  let html = `
+    <line x1="35" y1="190" x2="300" y2="190" stroke="#64748b" stroke-width="1.5" />
+    <line x1="35" y1="190" x2="35" y2="20" stroke="#64748b" stroke-width="1.5" />
+    <text x="16" y="105" transform="rotate(-90 16,105)" text-anchor="middle" font-size="12" fill="#475569">Energia (ΔG)</text>
+    <text x="170" y="208" text-anchor="middle" font-size="12" fill="#475569">Coordinata di reazione</text>
+  `;
+
+  if (mech === 'NONE') {
+    html += `<text x="170" y="110" text-anchor="middle" font-size="13" fill="#991b1b">Barriera troppo elevata (nessuna reazione)</text>`;
+  } else if (mech === 'SN2' || mech === 'E2') {
+    html += `
+      <path d="M 45 120 Q 150 20 275 160" fill="none" stroke="#2563eb" stroke-width="3" />
+      <circle cx="155" cy="73" r="4" fill="#dc2626" />
+      <text x="155" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">TS (1 stadio)</text>
+      <text x="58" y="110" font-size="11" fill="#334155">Reagenti</text>
+      <text x="255" y="175" font-size="11" fill="#16a34a">Prodotti</text>
+    `;
+  } else {
+    html += `
+      <path d="M 45 125 C 85 125, 100 35, 130 35 C 155 35, 160 95, 175 95 C 190 95, 200 62, 220 62 C 240 62, 250 160, 285 160" fill="none" stroke="#7c3aed" stroke-width="3" />
+      <circle cx="130" cy="35" r="4" fill="#dc2626" />
+      <text x="130" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626">TS₁ (RDS)</text>
+      <circle cx="175" cy="95" r="4" fill="#d97706" />
+      <text x="175" y="114" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">C⁺ intermedio</text>
+      <circle cx="220" cy="62" r="4" fill="#dc2626" />
+      <text x="224" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#dc2626">TS₂</text>
+      <text x="52" y="142" font-size="11" fill="#334155">Reag.</text>
+      <text x="262" y="176" font-size="11" fill="#16a34a">Prod.</text>
+    `;
+  }
+  svg.innerHTML = html;
+}
+
+// =========================================================
+// INIZIALIZZAZIONE INTERFACCIA & EVENTI
+// =========================================================
+const subSel = document.getElementById('substrateSelect');
+const nucSel = document.getElementById('nucleophileSelect');
+const solvSel = document.getElementById('solventSelect');
+const condSel = document.getElementById('conditionSelect');
+const studyToggle = document.getElementById('studyModeToggle');
+
+function populateSelect(sel, items) {
+  items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.textContent = item.name;
+    sel.appendChild(opt);
+  });
+}
+
+populateSelect(subSel, SUBSTRATES);
+populateSelect(nucSel, NUCLEOPHILES);
+populateSelect(solvSel, SOLVENTS);
+populateSelect(condSel, CONDITIONS);
+
+// Default didattico interessante: (R)-2-bromobutano + EtO-
+subSel.value = '2brbut';
+nucSel.value = 'eto';
+solvSel.value = 'dmso';
+condSel.value = 'rt';
+
+let selectedHyp = null;
+let lastResult = null;
+let currentMechStep = 0;
+let historyCount = 0;
+
+function getSelected() {
+  return {
+    sub: SUBSTRATES.find(x => x.id === subSel.value),
+    nuc: NUCLEOPHILES.find(x => x.id === nucSel.value),
+    solv: SOLVENTS.find(x => x.id === solvSel.value),
+    cond: CONDITIONS.find(x => x.id === condSel.value)
+  };
+}
+
+function updatePreviewAndHints() {
+  const { sub, nuc, solv, cond } = getSelected();
+  const showHints = studyToggle.checked;
+
+  const map = [
+    ['substrateHint', sub.hint],
+    ['nucleophileHint', nuc.hint],
+    ['solventHint', solv.hint],
+    ['conditionHint', cond.hint]
+  ];
+  map.forEach(([id, txt]) => {
+    const el = document.getElementById(id);
+    el.textContent = txt;
+    el.classList.toggle('hidden', !showHints);
+  });
+
+  document.getElementById('equationBar').innerHTML = `
+    <span class="pill substrate">${sub.formula}</span>
+    <span>+</span>
+    <span class="pill nucleophile">${nuc.formula}</span>
+    <div class="arrow-block">
+      <span class="pill solvent" style="padding:2px 9px;font-size:0.78rem;">${solv.name.split(' ')[0]}</span>
+      <span class="arrow">⟶</span>
+      <span class="pill temp" style="padding:2px 9px;font-size:0.78rem;">${cond.heat ? 'Δ (60–80 °C)' : cond.crown ? '18-crown-6, 25 °C' : '25 °C'}</span>
+    </div>
+    <span class="pill" style="border-style:dashed;color:var(--muted);">? (${selectedHyp || 'scegli ipotesi'})</span>
+  `;
+}
+
+[subSel, nucSel, solvSel, condSel, studyToggle].forEach(el =>
+  el.addEventListener('change', updatePreviewAndHints)
+);
+
+document.querySelectorAll('#hypGrid .hyp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#hypGrid .hyp-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedHyp = btn.dataset.hyp;
+    updatePreviewAndHints();
+  });
+});
+
+document.querySelectorAll('[data-step]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-step]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMechStep = Number(btn.dataset.step);
+    if (lastResult) renderMechanismSvg(lastResult.primary, currentMechStep);
+  });
+});
+
+document.getElementById('runBtn').addEventListener('click', () => {
+  if (!selectedHyp) {
+    alert('Seleziona prima la tua ipotesi (SN1, SN2, E1, E2 o Nessuna reazione).');
+    return;
+  }
+  const { sub, nuc, solv, cond } = getSelected();
+  const res = evaluateReaction(sub, nuc, solv, cond);
+  lastResult = res;
+  currentMechStep = 0;
+
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('resultContent').classList.remove('hidden');
+
+  const banner = document.getElementById('resultBanner');
+  banner.className = 'result-banner';
+  let statusTag = '';
+  let statusClass = '';
+
+  if (selectedHyp === res.primary) {
+    banner.classList.add('ok');
+    banner.innerHTML = `<h3>✅ Ipotesi corretta! Prevale il meccanismo ${res.primary}</h3>
+      <p>La tua previsione (${selectedHyp}) corrisponde al meccanismo dominante per questi reagenti e condizioni.</p>`;
+    statusTag = 'Corretta';
+    statusClass = 'ok';
+  } else if (res.accepted.includes(selectedHyp)) {
+    banner.classList.add('partial');
+    banner.innerHTML = `<h3>⚠️ Parzialmente corretta: competizione tra ${res.primary} e ${selectedHyp}</h3>
+      <p>Il meccanismo ${selectedHyp} avviene in misura significativa, ma in queste condizioni prevale <strong>${res.primary}</strong>.</p>`;
+    statusTag = 'Competizione';
+    statusClass = 'partial';
+  } else {
+    banner.classList.add('ko');
+    banner.innerHTML = `<h3>❌ Ipotesi da rivedere: hai scelto ${selectedHyp}, ma prevale ${res.primary}</h3>
+      <p>Confronta i 4 fattori qui sotto per capire perché il sistema segue il percorso ${res.primary}.</p>`;
+    statusTag = 'Errata';
+    statusClass = 'ko';
+  }
+
+  document.getElementById('productSummary').textContent = res.productText;
+  document.getElementById('kineticLabel').textContent = res.kinetic;
+
+  // Barre competizione
+  const colors = { SN2: '#2563eb', SN1: '#7c3aed', E2: '#d97706', E1: '#dc2626' };
+  const barsHtml = Object.entries(res.scores).map(([k, v]) => `
+    <div class="bar-row">
+      <div class="bar-label">${k}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${v}%;background:${colors[k]};"></div></div>
+      <div class="bar-pct">${v}%</div>
+    </div>
+  `).join('');
+  document.getElementById('compBars').innerHTML = res.primary === 'NONE' ? '' : barsHtml;
+
+  // Reset bottoni step meccanismo
+  document.querySelectorAll('[data-step]').forEach((b, i) => b.classList.toggle('active', i === 0));
+  renderMechanismSvg(res.primary, 0);
+  renderEnergySvg(res.primary);
+
+  document.getElementById('criteriaList').innerHTML = `
+    <div class="crit-item"><strong>1. Substrato</strong>${res.reasons.sub}</div>
+    <div class="crit-item"><strong>2. Nucleofilo / Base</strong>${res.reasons.nuc}</div>
+    <div class="crit-item"><strong>3. Solvente</strong>${res.reasons.solv}</div>
+    <div class="crit-item"><strong>4. Temperatura / Catalizzatore</strong>${res.reasons.cond}</div>
+  `;
+
+  // Aggiorna storico
+  const tbody = document.getElementById('historyBody');
+  if (historyCount === 0) tbody.innerHTML = '';
+  historyCount++;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${historyCount}</td>
+    <td>${sub.formula} + ${nuc.formula}</td>
+    <td>${solv.name.split(' ')[0]} / ${cond.heat ? 'Δ' : '25°C'}</td>
+    <td><strong>${selectedHyp}</strong></td>
+    <td><strong>${res.primary}</strong></td>
+    <td><span class="tag ${statusClass}">${statusTag}</span></td>
+  `;
+  tbody.prepend(tr);
+});
+
+document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+  historyCount = 0;
+  document.getElementById('historyBody').innerHTML = '<tr><td colspan="6" style="color:var(--muted);">Nessun esperimento registrato ancora.</td></tr>';
+});
+
+updatePreviewAndHints();
+</script>
+</body>
+</html>
