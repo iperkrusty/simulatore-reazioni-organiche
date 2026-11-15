@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulatore SEAr — Sostituzione Elettrofila Aromatica del Benzene (Multistadio)</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --accent: #7c3aed;
+      --success: #16a34a;
+      --success-bg: #f0fdf4;
+      --warn: #d97706;
+      --warn-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 12px;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #312e81, #2563eb);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 2px 10px rgba(30, 58, 138, 0.22);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      margin: 2px 0 0;
+      font-size: 0.86rem;
+      opacity: 0.9;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.16);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+    .mode-toggle input { cursor: pointer; }
+
+    .btn-reset-top {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-reset-top:hover { background: rgba(255,255,255,0.3); }
+
+    .container {
+      max-width: 1260px;
+      margin: 20px auto;
+      padding: 0 16px 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .stage-section {
+      border: 2px solid #cbd5e1;
+      border-radius: 16px;
+      background: #f8fafc;
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .stage-section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .stage-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .stage-pill-count {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: 385px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .stage-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #0f172a;
+    }
+
+    .step-badge {
+      background: var(--primary);
+      color: #fff;
+      width: 23px;
+      height: 23px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 0.79rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .hint-box {
+      margin-top: 5px;
+      font-size: 0.78rem;
+      color: #475569;
+      background: #f8fafc;
+      border-left: 3px solid var(--primary);
+      padding: 5px 8px;
+      border-radius: 0 6px 6px 0;
+    }
+    .hidden { display: none !important; }
+
+    .inherited-ring-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+    }
+
+    .hyp-subtitle {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin: 8px 0 6px;
+      letter-spacing: 0.03em;
+    }
+
+    .hyp-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      margin-bottom: 8px;
+    }
+    .hyp-btn {
+      padding: 8px 7px;
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.86rem;
+      color: var(--text);
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .hyp-btn small {
+      display: block;
+      font-weight: 400;
+      font-size: 0.71rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .hyp-btn:hover:not(:disabled) { border-color: #93c5fd; background: var(--primary-light); }
+    .hyp-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: #1d4ed8;
+    }
+    .hyp-btn.full-span { grid-column: 1 / -1; }
+    .hyp-btn:disabled, .hyp-btn.disabled-opt {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: #f1f5f9;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-size: 0.94rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+    }
+    .btn-primary:hover { filter: brightness(1.05); }
+
+    .btn-secondary {
+      padding: 5px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .stage-right {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .reaction-equation {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      justify-content: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+      font-size: 0.86rem;
+    }
+    .pill.reag { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .pill.cat { background: #f1f5f9; color: #334155; border-color: #cbd5e1; font-size: 0.82rem; }
+    .pill.prod { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .pill.none { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+    .result-banner {
+      padding: 10px 14px;
+      border-radius: 9px;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+    }
+    .result-banner.ok { background: var(--success-bg); border: 1px solid #86efac; color: #14532d; }
+    .result-banner.warn { background: var(--warn-bg); border: 1px solid #fcd34d; color: #78350f; }
+    .result-banner.bad { background: var(--danger-bg); border: 1px solid #fca5a5; color: #7f1d1d; }
+
+    .product-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      background: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .trap-alert {
+      margin-top: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #78350f;
+      font-size: 0.84rem;
+    }
+
+    .comp-bars {
+      margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 46px;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+    .bar-track {
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (max-width: 780px) {
+      .viz-grid { grid-template-columns: 1fr; }
+    }
+
+    .svg-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fcfdff;
+    }
+    .svg-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.86rem;
+    }
+
+    .criteria-list {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 9px;
+    }
+    .crit-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 0.82rem;
+    }
+    .crit-item strong { display: block; color: #0f172a; margin-bottom: 2px; }
+
+    .next-stage-bar {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #eef2ff, #e0f2fe);
+      border: 1px solid #93c5fd;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-next {
+      padding: 9px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #16a34a;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+    }
+    .btn-next:hover { background: #15803d; }
+
+    .final-badge {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #14532d;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    table.history {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+    }
+    table.history th, table.history td {
+      text-align: left;
+      padding: 7px 9px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.history th {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    .badge-ok { color: var(--success); font-weight: 700; }
+    .badge-bad { color: var(--danger); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🧪 Simulatore S<sub>E</sub>Ar — Sostituzione Elettrofila Aromatica (Sintesi fino a 4 Sostituenti)</h1>
+    <p>Scegli il reagente iniziale e prosegui stadio dopo stadio sull'anello benzenico fino a 4 sostituenti (max 4 sezioni)</p>
+  </div>
+  <div class="header-actions">
+    <label class="mode-toggle" title="Mostra le formule topologiche del benzene, dei prodotti e degli anelli plurisostituiti">
+      <input type="checkbox" id="topologyFlag" checked />
+      <span>🗺️ Mostra Topologica</span>
+    </label>
+    <label class="mode-toggle" title="Nasconde i suggerimenti per esercitarti autonomamente">
+      <input type="checkbox" id="examMode" />
+      <span>Modalità Verifica</span>
+    </label>
+    <button type="button" class="btn-reset-top" id="resetAllBtn">🔄 Nuova Sintesi</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="stagesContainer" style="display:flex;flex-direction:column;gap:22px;"></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <h3 style="margin:0;">📋 Registro Esperimenti (Sessione corrente)</h3>
+      <button type="button" class="btn-secondary" id="clearHistoryBtn">Pulisci</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="history">
+        <thead>
+          <tr>
+            <th>Stadio</th>
+            <th>Substrato + Reagente</th>
+            <th>Catalizzatore</th>
+            <th>Ipotesi</th>
+            <th>Esito Reale</th>
+            <th>Valutazione</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="6" style="color:var(--muted);">Nessun esperimento registrato ancora.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// DATI CHIMICI — SOSTITUZIONE ELETTROFILA AROMATICA (SEAr)
+// =========================================================
+const GROUP_PROPS = {
+  'OH':     { power: +3.0, directing: 'OP',   effect: '+M forte (≫ −I)' },
+  'NH₂':    { power: +3.5, directing: 'OP',   effect: '+M fortissimo (basico!)' },
+  'NH₃⁺':   { power: -3.5, directing: 'META', effect: '−I fortissimo (anilinio protonato)' },
+  'OCH₃':   { power: +2.8, directing: 'OP',   effect: '+M forte (≫ −I)' },
+  'CH₃':    { power: +1.0, directing: 'OP',   effect: '+I e iperconiugazione σ-π' },
+  'CH₂CH₃': { power: +1.0, directing: 'OP',   effect: '+I e iperconiugazione σ-π' },
+  'Cl':     { power: -0.5, directing: 'OP',   effect: '−I > +M (disattivante o/p)' },
+  'Br':     { power: -0.5, directing: 'OP',   effect: '−I > +M (disattivante o/p)' },
+  'COCH₃':  { power: -2.0, directing: 'META', effect: '−M e −I (chetone)' },
+  'CHO':    { power: -2.2, directing: 'META', effect: '−M e −I (aldeide)' },
+  'SO₃H':   { power: -2.5, directing: 'META', effect: '−M e −I (acido solfonico)' },
+  'NO₂':    { power: -3.2, directing: 'META', effect: '−M e −I fortissimi' }
+};
+
+const INITIAL_SUBSTRATES = [
+  { id: 'benzene',      name: 'Benzene (C₆H₆)',               group: null,    hint: 'Anello aromatico di riferimento (nessun sostituente, 6 posizioni equivalenti).' },
+  { id: 'fenolo',       name: 'Fenolo (C₆H₅–OH)',            group: 'OH',    hint: 'Gruppo −OH fortemente attivante (+M) e orto/para-orientante.' },
+  { id: 'anisolo',      name: 'Anisolo (C₆H₅–OCH₃)',         group: 'OCH₃',  hint: 'Gruppo −OCH₃ fortemente attivante (+M) e orto/para-orientante.' },
+  { id: 'anilina',      name: 'Anilina (C₆H₅–NH₂)',          group: 'NH₂',   hint: 'Attenzione: −NH₂ è attivante o/p, ma in H₂SO₄ si protona a −NH₃⁺ (meta!) e con AlCl₃ blocca la Friedel-Crafts.' },
+  { id: 'toluene',      name: 'Toluene (C₆H₅–CH₃)',          group: 'CH₃',   hint: 'Gruppo metilico attivante (+I / iperconiugazione) e orto/para-orientante.' },
+  { id: 'clorobenzene', name: 'Clorobenzene (C₆H₅–Cl)',      group: 'Cl',    hint: 'Eccezione: −Cl disattiva l\'anello (−I > +M) ma orienta in orto/para (+M).' },
+  { id: 'benzaldeide',  name: 'Benzaldeide (C₆H₅–CHO)',      group: 'CHO',   hint: 'Gruppo −CHO disattivante (−M) e meta-orientante. Non dà Friedel-Crafts.' },
+  { id: 'nitrobenzene', name: 'Nitrobenzene (C₆H₅–NO₂)',     group: 'NO₂',   hint: 'Gruppo −NO₂ fortemente disattivante (−M) e meta-orientante. Non dà Friedel-Crafts.' }
+];
+
+const REAGENTS = [
+  {
+    id: 'br2',
+    name: 'Bromurazione (Br₂)',
+    formula: 'Br₂',
+    electro: 'Br⁺',
+    electroFull: 'Br⁺ (da Br₂ + FeBr₃ o AlCl₃)',
+    prodGroup: 'Br',
+    benzeneProdId: 'bromobenzene',
+    benzeneProdName: 'Bromobenzene',
+    byproduct: 'HBr',
+    prodName: 'bromo',
+    reqCat: ['febr3', 'alcl3'],
+    fcReaction: false,
+    hint: 'Richiede FeBr₃ o AlCl₃ come acido di Lewis (su fenolo/anilina reagisce anche senza catalizzatore).'
+  },
+  {
+    id: 'cl2',
+    name: 'Clorurazione (Cl₂)',
+    formula: 'Cl₂',
+    electro: 'Cl⁺',
+    electroFull: 'Cl⁺ (da Cl₂ + FeCl₃ o AlCl₃)',
+    prodGroup: 'Cl',
+    benzeneProdId: 'clorobenzene',
+    benzeneProdName: 'Clorobenzene',
+    byproduct: 'HCl',
+    prodName: 'cloro',
+    reqCat: ['fecl3', 'alcl3'],
+    fcReaction: false,
+    hint: 'Richiede FeCl₃ o AlCl₃ come catalizzatore acido di Lewis.'
+  },
+  {
+    id: 'hno3',
+    name: 'Nitrazione (HNO₃)',
+    formula: 'HNO₃',
+    electro: 'NO₂⁺',
+    electroFull: 'NO₂⁺ (ione nitronio)',
+    prodGroup: 'NO₂',
+    benzeneProdId: 'nitrobenzene',
+    benzeneProdName: 'Nitrobenzene',
+    byproduct: 'H₂O',
+    prodName: 'nitro',
+    reqCat: ['h2so4_conc'],
+    fcReaction: false,
+    hint: 'Richiede H₂SO₄ concentrato (miscela solfonitrica) per generare lo ione nitronio NO₂⁺.'
+  },
+  {
+    id: 'so3',
+    name: 'Solfonazione (H₂SO₄ conc. / SO₃)',
+    formula: 'SO₃ / H₂SO₄',
+    electro: 'SO₃H⁺',
+    electroFull: 'SO₃ / SO₃H⁺',
+    prodGroup: 'SO₃H',
+    benzeneProdId: 'acido_benzensolfonico',
+    benzeneProdName: 'Acido benzensolfonico',
+    byproduct: 'H₂O',
+    prodName: 'solfo',
+    reqCat: ['h2so4_fum', 'h2so4_conc'],
+    fcReaction: false,
+    hint: 'Richiede H₂SO₄ concentrato o fumante (oleum); reazione reversibile in H₂SO₄ 60%.'
+  },
+  {
+    id: 'fc_alk',
+    name: 'Alchilazione Friedel-Crafts (CH₃CH₂Cl)',
+    formula: 'CH₃CH₂Cl',
+    electro: 'CH₃CH₂⁺',
+    electroFull: 'CH₃CH₂⁺ (complesso con AlCl₃)',
+    prodGroup: 'CH₂CH₃',
+    benzeneProdId: 'etilbenzene',
+    benzeneProdName: 'Etilbenzene',
+    byproduct: 'HCl',
+    prodName: 'etil',
+    reqCat: ['alcl3'],
+    fcReaction: true,
+    hint: 'Richiede AlCl₃. Non avviene su anelli più disattivati del clorobenzene né su anilina.'
+  },
+  {
+    id: 'fc_acyl',
+    name: 'Acilazione Friedel-Crafts (CH₃COCl)',
+    formula: 'CH₃COCl',
+    electro: 'CH₃C≡O⁺',
+    electroFull: 'CH₃–C≡O⁺ (ione acilonio)',
+    prodGroup: 'COCH₃',
+    benzeneProdId: 'acetofenone',
+    benzeneProdName: 'Acetofenone',
+    byproduct: 'HCl',
+    prodName: 'acetil',
+    reqCat: ['alcl3'],
+    fcReaction: true,
+    hint: 'Richiede AlCl₃. Genera lo ione acilonio stabilizzato per risonanza (nessuna trasposizione).'
+  }
+];
+
+const BENZENE_HYP_PRODUCTS = [
+  { id: 'clorobenzene',         label: 'Clorobenzene',         formula: 'C₆H₅–Cl' },
+  { id: 'bromobenzene',         label: 'Bromobenzene',         formula: 'C₆H₅–Br' },
+  { id: 'nitrobenzene',         label: 'Nitrobenzene',         formula: 'C₆H₅–NO₂' },
+  { id: 'acido_benzensolfonico', label: 'Acido benzensolfonico', formula: 'C₆H₅–SO₃H' },
+  { id: 'etilbenzene',          label: 'Etilbenzene',          formula: 'C₆H₅–CH₂CH₃' },
+  { id: 'acetofenone',          label: 'Acetofenone',          formula: 'C₆H₅–COCH₃' }
+];
+
+const CATALYSTS = [
+  { id: 'none',       name: 'Nessun catalizzatore',         short: 'Nessuno',       hint: 'Senza catalizzatore l\'elettrofilo non è attivato (funziona solo per Br₂/Cl₂ su fenolo o anilina).' },
+  { id: 'febr3',      name: 'FeBr₃ (Acido di Lewis)',       short: 'FeBr₃',         hint: 'Catalizzatore specifico per la bromurazione con Br₂.' },
+  { id: 'fecl3',      name: 'FeCl₃ (Acido di Lewis)',       short: 'FeCl₃',         hint: 'Catalizzatore specifico per la clorurazione con Cl₂.' },
+  { id: 'h2so4_conc', name: 'H₂SO₄ concentrato',            short: 'H₂SO₄ conc.',   hint: 'Genera NO₂⁺ da HNO₃ (miscela solfonitrica).' },
+  { id: 'h2so4_fum',  name: 'H₂SO₄ fumante (Oleum)',        short: 'H₂SO₄ fumante', hint: 'Sorgente elettrofila di SO₃ per la solfonazione.' },
+  { id: 'alcl3',      name: 'AlCl₃ (Acido di Lewis)',       short: 'AlCl₃',         hint: 'Catalizzatore per alchilazione e acilazione di Friedel-Crafts.' }
+];
+
+const MAX_STAGES = 4;
+const MAX_SUBSTITUENTS = 4;
+
+let stagesState = [];
+let historyLog = [];
+
+const $ = id => document.getElementById(id);
+
+function countSubs(ring) {
+  return ring.filter(g => g !== null).length;
+}
+
+function ringToText(ring) {
+  const subs = [];
+  ring.forEach((g, idx) => {
+    if (g !== null) subs.push(`C${idx + 1}: −${g}`);
+  });
+  return subs.length === 0 ? 'Benzene (C₆H₆)' : `Anello con ${subs.join(', ')}`;
+}
+
+// =========================================================
+// MOTORE CHIMICO MULTISTADIO (FINO A 4 SOSTITUENTI)
+// =========================================================
+function computeOutcome(ring, reag, cat) {
+  const nSubs = countSubs(ring);
+  const isBenzene = nSubs === 0;
+
+  let trapMsg = '';
+  let noReaction = false;
+  let noReactionReason = '';
+
+  // Controllo gruppo NH2 presente sull'anello
+  const hasNH2 = ring.includes('NH₂');
+  const hasStrongDeact = ring.some(g => g && GROUP_PROPS[g] && GROUP_PROPS[g].power <= -2.0);
+  const hasUltraAct = ring.some(g => g === 'OH' || g === 'NH₂');
+
+  // 1. Verifica catalizzatore
+  if (cat.id === 'none') {
+    if ((reag.id === 'br2' || reag.id === 'cl2') && hasUltraAct) {
+      trapMsg = '⚡ I gruppi −OH / −NH₂ attivano talmente tanto l\'anello da far reagire l\'alogeno anche SENZA acido di Lewis!';
+    } else {
+      noReaction = true;
+      noReactionReason = `Senza catalizzatore idoneo, ${reag.formula} non genera un elettrofilo sufficientemente forte per attaccare l'anello aromatico.`;
+    }
+  } else if (!reag.reqCat.includes(cat.id)) {
+    noReaction = true;
+    noReactionReason = `Catalizzatore non compatibile: ${reag.name} richiede ${reag.reqCat.map(id => CATALYSTS.find(c=>c.id===id).short).join(' o ')}, non ${cat.short}.`;
+  }
+
+  // 2. Casi speciali Anilina (-NH2)
+  if (!noReaction && hasNH2) {
+    if (reag.fcReaction && cat.id === 'alcl3') {
+      noReaction = true;
+      noReactionReason = 'Il gruppo amminico (−NH₂) è una base di Lewis e coordina AlCl₃ formando un addotto disattivante: la Friedel-Crafts NON avviene!';
+      trapMsg = '⚠️ Trabocchetto classico: −NH₂ avvelena il catalizzatore AlCl₃!';
+    } else if (reag.id === 'hno3' && cat.id === 'h2so4_conc') {
+      trapMsg = '⚠️ Trabocchetto acido-base: in H₂SO₄ conc., −NH₂ si protona a −NH₃⁺ (fortemente DISATTIVANTE e META-orientante)!';
+    }
+  }
+
+  // 3. Limite Friedel-Crafts su anelli disattivati
+  if (!noReaction && reag.fcReaction && hasStrongDeact) {
+    noReaction = true;
+    noReactionReason = 'L\'anello contiene un gruppo fortemente elettronattrattore (−NO₂, −CHO, −COCH₃ o −SO₃H): le reazioni di Friedel-Crafts NON avvengono su anelli così disattivati.';
+    trapMsg = '🚫 Limite di Friedel-Crafts: anelli con gruppi −M forti non danno né alchilazione né acilazione!';
+  }
+
+  // 4. Calcolo reattività globale (effettiva durante la reazione)
+  // Se è nitrazione su anilina, -NH2 agisce come -NH3+
+  const effectiveRing = ring.map(g => (g === 'NH₂' && reag.id === 'hno3' && cat.id === 'h2so4_conc') ? 'NH₃⁺' : g);
+
+  let totalPower = 0;
+  effectiveRing.forEach(g => {
+    if (g && GROUP_PROPS[g]) totalPower += GROUP_PROPS[g].power;
+  });
+
+  let reactivity = 'NONE';
+  if (!noReaction) {
+    if (isBenzene) reactivity = 'BENZENE';
+    else reactivity = totalPower >= 0 ? 'ATTIVANTE' : 'DISATTIVANTE';
+  }
+
+  // 5. Calcolo punteggi regioselettività per ogni posizione libera
+  const posScores = [];
+  if (!noReaction) {
+    if (isBenzene) {
+      posScores.push({ pos: 3, score: 10, label: 'C1 (equivalente)' });
+    } else {
+      for (let pos = 0; pos < 6; pos++) {
+        if (effectiveRing[pos] !== null) continue;
+        let score = 0;
+        effectiveRing.forEach((g, sPos) => {
+          if (!g) return;
+          const prop = GROUP_PROPS[g];
+          const d = Math.min((pos - sPos + 6) % 6, (sPos - pos + 6) % 6);
+          if (prop.directing === 'OP') {
+            if (prop.power > 0) {
+              if (d === 3) score += prop.power * 1.15;      // para favorito
+              else if (d === 1) score += prop.power * 0.85; // orto
+            } else {
+              // alogeno (-I > +M)
+              if (d === 3) score += 0.45;
+              else if (d === 1) score += 0.25;
+              else score -= 0.5;
+            }
+          } else {
+            // META orientante
+            if (d === 2) score += 0.25;
+            else score += prop.power; // negativo in orto/para
+          }
+        });
+
+        // Penalità sterica se la posizione è stretta tra due sostituenti adiacenti
+        const leftOcc = effectiveRing[(pos + 5) % 6] !== null;
+        const rightOcc = effectiveRing[(pos + 1) % 6] !== null;
+        if (leftOcc && rightOcc) score -= 1.5;
+
+        posScores.push({ pos, score });
+      }
+      posScores.sort((a, b) => b.score - a.score);
+    }
+  }
+
+  // Determina orientamento prevalente (rispetto al gruppo dirigente principale)
+  let regio = 'NONE';
+  if (!noReaction) {
+    if (isBenzene) {
+      regio = 'EQ';
+    } else {
+      // Trova il gruppo con potere attivante massimo (che comanda l'orientamento)
+      let dominant = null;
+      let maxP = -999;
+      effectiveRing.forEach(g => {
+        if (g && GROUP_PROPS[g].power > maxP) {
+          maxP = GROUP_PROPS[g].power;
+          dominant = g;
+        }
+      });
+      regio = GROUP_PROPS[dominant].directing; // 'OP' o 'META'
+    }
+  }
+
+  // Calcolo shift energetico rispetto al benzene
+  const eaShift = isBenzene ? 0 : Math.max(-28, Math.min(30, Math.round(-totalPower * 8)));
+
+  // Note didattiche utili
+  if (!noReaction && !trapMsg) {
+    if (reag.id === 'fc_acyl') {
+      trapMsg = '✅ Vantaggio dell\'acilazione: lo ione acilio (R–C≡O⁺) non traspone e il gruppo −COCH₃ introdotto è disattivante, evitando poliacilazioni.';
+    } else if (ring.includes('Cl') && nSubs === 1) {
+      trapMsg = '💡 Eccezione degli alogeni: −Cl disattiva l\'anello (−I > +M, più lento del benzene), ma orienta in orto/para (+M).';
+    }
+  }
+
+  // Costruzione anelli prodotto (principale ed eventuale secondario se orto/para)
+  let primaryPos = null;
+  let secondaryPos = null;
+  let nextRingPrimary = null;
+  let nextRingSecondary = null;
+
+  if (!noReaction && posScores.length > 0) {
+    primaryPos = posScores[0].pos;
+    nextRingPrimary = [...ring];
+    nextRingPrimary[primaryPos] = reag.prodGroup;
+
+    if (posScores.length > 1 && Math.abs(posScores[0].score - posScores[1].score) < 1.3 && !isBenzene) {
+      secondaryPos = posScores[1].pos;
+      nextRingSecondary = [...ring];
+      nextRingSecondary[secondaryPos] = reag.prodGroup;
+    }
+  }
+
+  // Percentuali
+  let pct = { primary: 100, secondary: 0, other: 0 };
+  if (!noReaction && !isBenzene) {
+    if (secondaryPos !== null) {
+      pct = { primary: 65, secondary: 32, other: 3 };
+    } else {
+      pct = { primary: 92, secondary: 0, other: 8 };
+    }
+  }
+
+  // Descrizione prodotto
+  let productText = '';
+  let eqPillText = '';
+  if (noReaction) {
+    productText = `Nessuna reazione — ${noReactionReason}`;
+    eqPillText = 'Nessuna reazione';
+  } else if (isBenzene) {
+    productText = `Monosostituzione: C₆H₅–${reag.prodGroup} (tutte le 6 posizioni equivalenti)`;
+    eqPillText = `C₆H₅–${reag.prodGroup}${reag.byproduct !== '—' ? ' + ' + reag.byproduct : ''}`;
+  } else {
+    productText = `Ingresso di −${reag.prodGroup} favorito in posizione C${primaryPos + 1} (~${pct.primary}%)${secondaryPos !== null ? ` + isomero in C${secondaryPos + 1} (~${pct.secondary}%)` : ''}.`;
+    eqPillText = `Anello ${nSubs + 1}-sostituito (+ −${reag.prodGroup} in C${primaryPos + 1})`;
+  }
+
+  const criteria = [
+    {
+      title: '1. Effetto elettronico sull\'anello',
+      text: isBenzene ? 'Anello di benzene non sostituito.' : noReaction ? noReactionReason : `Sostituenti presenti: ${ring.filter(Boolean).map(g => '−' + g).join(', ')}. Bilancio elettronico: ${reactivity === 'ATTIVANTE' ? 'anello attivato (più reattivo del benzene).' : 'anello disattivato (meno reattivo del benzene).'}`
+    },
+    {
+      title: '2. Elettrofilo & Catalizzatore',
+      text: noReaction ? noReactionReason : `Elettrofilo generato: ${reag.electroFull} grazie a ${cat.short}.`
+    },
+    {
+      title: '3. Regioselettività (Ione Arenio)',
+      text: noReaction ? 'Nessun intermedio formato.' : isBenzene ? 'Nel benzene tutte le 6 posizioni sono equivalenti.' : `Orientamento prevalente: ${regio === 'OP' ? 'Orto / Para' : 'Meta'} rispetto al gruppo dirigente principale (posizione favorita: C${primaryPos + 1}).`
+    }
+  ];
+
+  return {
+    ring, reag, cat, isBenzene, nSubs,
+    reactivity, regio, eaShift,
+    noReaction, noReactionReason, trapMsg,
+    primaryPos, secondaryPos,
+    nextRingPrimary, nextRingSecondary,
+    pct, productText, eqPillText, criteria
+  };
+}
+
+// =========================================================
+// DISEGNO ANELLO BENZENICO SVG (CON FINO A 4+ SOSTITUENTI)
+// =========================================================
+function hexPoints(cx, cy, r) {
+  const pts = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i - Math.PI / 2; // C1=0 in alto, senso orario
+    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+  }
+  return pts;
+}
+
+function drawRingSVG(cx, cy, r, ring, opts = {}) {
+  const pts = hexPoints(cx, cy, r);
+  const poly = pts.map(p => p.join(',')).join(' ');
+  let svg = `<polygon points="${poly}" fill="#ffffff" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>`;
+
+  if (opts.aromaticCircle !== false && !opts.kekule && !opts.areniumArc) {
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r * 0.55}" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="4 3"/>`;
+  } else if (opts.kekule) {
+    const inset = 0.78;
+    [[0,1],[2,3],[4,5]].forEach(([a,b]) => {
+      svg += `<line x1="${cx + (pts[a][0]-cx)*inset}" y1="${cy + (pts[a][1]-cy)*inset}" x2="${cx + (pts[b][0]-cx)*inset}" y2="${cy + (pts[b][1]-cy)*inset}" stroke="#2563eb" stroke-width="2"/>`;
+    });
+  } else if (opts.areniumArc) {
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r * 0.52}" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="95 50" transform="rotate(${opts.arcRot || 0} ${cx} ${cy})"/>`;
+    svg += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="14" font-weight="800" fill="#dc2626">+</text>`;
+  }
+
+  // Disegna tutti i sostituenti presenti
+  ring.forEach((g, i) => {
+    if (!g) return;
+    const vx = pts[i][0] - cx;
+    const vy = pts[i][1] - cy;
+    const len = Math.hypot(vx, vy);
+    const ux = vx / len;
+    const uy = vy / len;
+    const x2 = pts[i][0] + ux * 18;
+    const y2 = pts[i][1] + uy * 18;
+    const tx = pts[i][0] + ux * 31;
+    const ty = pts[i][1] + uy * 31 + 4;
+    const isNew = opts.highlightPos === i;
+    const color = isNew ? '#16a34a' : '#4338ca';
+    svg += `<line x1="${pts[i][0]}" y1="${pts[i][1]}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2.2"/>`;
+    svg += `<text x="${tx}" y="${ty}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${color}">${g}</text>`;
+  });
+
+  // Numerini C1..C6 ed etichette topologiche opzionali (o/m/p per monosostituiti)
+  if (opts.showNumbers) {
+    const nSubs = ring.filter(Boolean).length;
+    const firstSubIdx = ring.findIndex(Boolean);
+    pts.forEach((p, i) => {
+      const vx = p[0] - cx;
+      const vy = p[1] - cy;
+      svg += `<text x="${cx + vx * 0.72}" y="${cy + vy * 0.72 + 3}" text-anchor="middle" font-size="8.5" fill="#94a3b8">${i+1}</text>`;
+      if (opts.showTopoLabels && ring[i] === null) {
+        let lbl = `H`;
+        if (nSubs === 1) {
+          const d = Math.min((i - firstSubIdx + 6) % 6, (firstSubIdx - i + 6) % 6);
+          if (d === 1) lbl = 'o';
+          else if (d === 2) lbl = 'm';
+          else if (d === 3) lbl = 'p';
+        }
+        const len = Math.hypot(vx, vy);
+        const tx = p[0] + (vx / len) * 16;
+        const ty = p[1] + (vy / len) * 16 + 3;
+        svg += `<text x="${tx}" y="${ty}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">${lbl}</text>`;
+      }
+    });
+  }
+
+  return { svg, pts };
+}
+
+// =========================================================
+// GESTIONE SEZIONI DINAMICHE (MAX 4 SEZIONI / 4 SOSTITUENTI)
+// =========================================================
+function resetAll() {
+  stagesState = [createStageState(0, [null, null, null, null, null, null], 'benzene')];
+  renderAllStages();
+}
+
+function createStageState(stageIndex, initialRing, initialSubId = null) {
+  return {
+    index: stageIndex,
+    ring: [...initialRing],
+    subId: initialSubId,
+    reagId: stageIndex === 0 ? 'hno3' : 'br2',
+    catId: stageIndex === 0 ? 'h2so4_conc' : 'febr3',
+    hypReact: null,
+    hypRegio: null,
+    hypBenzeneProd: null,
+    step: 0,
+    outcome: null,
+    chosenNextPos: 'primary'
+  };
+}
+
+function renderAllStages() {
+  const container = $('stagesContainer');
+  container.innerHTML = '';
+
+  stagesState.forEach((st, idx) => {
+    const sec = document.createElement('section');
+    sec.className = 'stage-section';
+    sec.id = `stage-${idx}`;
+
+    const nSubs = countSubs(st.ring);
+    const isBenzene = nSubs === 0;
+    const hideHints = $('examMode').checked;
+    const showTopo = $('topologyFlag').checked;
+
+    sec.innerHTML = `
+      <div class="stage-section-header">
+        <div class="stage-title">
+          <span class="step-badge">${idx + 1}</span>
+          <span>Sezione ${idx + 1} — ${idx === 0 ? 'Reazione iniziale' : `Proseguimento sul prodotto dello Stadio ${idx}`}</span>
+        </div>
+        <span class="stage-pill-count">Sostituenti sull'anello: ${nSubs} / ${MAX_SUBSTITUENTS}</span>
+      </div>
+
+      <div class="stage-grid">
+        <!-- COLONNA SINISTRA -->
+        <div class="card">
+          <h3><span class="step-badge">1</span> Configura Stadio ${idx + 1}</h3>
+
+          ${idx === 0 ? `
+            <div class="field">
+              <label>Substrato Aromatico iniziale</label>
+              <select class="sub-select" data-idx="${idx}">
+                ${INITIAL_SUBSTRATES.map(s => `<option value="${s.id}" ${st.subId === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+              </select>
+              <div class="hint-box ${hideHints ? 'hidden' : ''}" id="subHint-${idx}"></div>
+            </div>
+            ${showTopo ? `
+              <div class="inherited-ring-box">
+                <svg width="115" height="110" viewBox="0 0 135 125">${drawRingSVG(67, 62, 31, st.ring, { showNumbers: true, showTopoLabels: true }).svg}</svg>
+                <div style="font-size:0.8rem;">
+                  <strong style="display:block;color:#1e3a8a;">Formula topologica substrato:</strong>
+                  <span>${isBenzene ? 'Benzene: 6 C equivalenti (C1–C6)' : ringToText(st.ring) + ' (o = orto, m = meta, p = para)'}</span>
+                </div>
+              </div>
+            ` : ''}
+          ` : `
+            <div class="inherited-ring-box">
+              ${showTopo ? `<svg width="115" height="110" viewBox="0 0 135 125">${drawRingSVG(67, 62, 31, st.ring, { showNumbers: true, showTopoLabels: true }).svg}</svg>` : ''}
+              <div style="font-size:0.83rem;">
+                <strong style="display:block;color:#1e3a8a;">Substrato ereditato (${nSubs} sost.):</strong>
+                <span>${ringToText(st.ring)}</span>
+              </div>
+            </div>
+          `}
+
+          <div class="field">
+            <label>Reagente &amp; Elettrofilo</label>
+            <select class="reag-select" data-idx="${idx}">
+              ${REAGENTS.map(r => `<option value="${r.id}" ${st.reagId === r.id ? 'selected' : ''}>${r.name}</option>`).join('')}
+            </select>
+            <div class="hint-box ${hideHints ? 'hidden' : ''}" id="reagHint-${idx}"></div>
+          </div>
+
+          <div class="field">
+            <label>Catalizzatore</label>
+            <select class="cat-select" data-idx="${idx}">
+              ${CATALYSTS.map(c => `<option value="${c.id}" ${st.catId === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
+            <div class="hint-box ${hideHints ? 'hidden' : ''}" id="catHint-${idx}"></div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;" />
+
+          <h3><span class="step-badge">2</span> Formula la tua ipotesi</h3>
+          ${isBenzene ? `
+            <div class="hyp-subtitle">Prodotto atteso (partendo dal Benzene)</div>
+            <div class="hyp-grid">
+              ${BENZENE_HYP_PRODUCTS.map(p => `
+                <button type="button" class="hyp-btn benz-prod-btn ${st.hypBenzeneProd === p.id ? 'selected' : ''}" data-idx="${idx}" data-val="${p.id}">
+                  ${p.label}<small>${p.formula}</small>
+                </button>
+              `).join('')}
+              <button type="button" class="hyp-btn full-span benz-prod-btn ${st.hypBenzeneProd === 'NONE' ? 'selected' : ''}" data-idx="${idx}" data-val="NONE">
+                Nessuna reazione<small>Catalizzatore assente o incompatibile</small>
+              </button>
+            </div>
+            <div class="hyp-subtitle" style="opacity:0.65;">Effetto orientante (non applicabile al Benzene)</div>
+            <div class="hyp-grid">
+              <button type="button" class="hyp-btn" disabled title="Non applicabile al benzene non sostituito">
+                Attivante<small>Disabilitato per Benzene</small>
+              </button>
+              <button type="button" class="hyp-btn" disabled title="Non applicabile al benzene non sostituito">
+                Disattivante<small>Disabilitato per Benzene</small>
+              </button>
+            </div>
+          ` : `
+            <div class="hyp-subtitle">A. Effetto / Reattività</div>
+            <div class="hyp-grid">
+              <button type="button" class="hyp-btn react-btn ${st.hypReact === 'ATTIVANTE' ? 'selected' : ''}" data-idx="${idx}" data-val="ATTIVANTE">
+                Attivante<small>Più veloce del benzene</small>
+              </button>
+              <button type="button" class="hyp-btn react-btn ${st.hypReact === 'DISATTIVANTE' ? 'selected' : ''}" data-idx="${idx}" data-val="DISATTIVANTE">
+                Disattivante<small>Più lento del benzene</small>
+              </button>
+              <button type="button" class="hyp-btn full-span react-btn ${st.hypReact === 'NONE' ? 'selected' : ''}" data-idx="${idx}" data-val="NONE">
+                Nessuna reazione<small>Catalizzatore assente / errato o anello bloccato</small>
+              </button>
+            </div>
+
+            <div class="hyp-subtitle">B. Regioselettività prevalente</div>
+            <div class="hyp-grid">
+              <button type="button" class="hyp-btn regio-btn ${st.hypRegio === 'OP' ? 'selected' : ''}" data-idx="${idx}" data-val="OP" ${st.hypReact === 'NONE' ? 'disabled' : ''}>
+                Orto / Para<small>Attacco in o/p</small>
+              </button>
+              <button type="button" class="hyp-btn regio-btn ${st.hypRegio === 'META' ? 'selected' : ''}" data-idx="${idx}" data-val="META" ${st.hypReact === 'NONE' ? 'disabled' : ''}>
+                Meta<small>Attacco in meta</small>
+              </button>
+            </div>
+          `}
+
+          <button type="button" class="btn-primary run-stage-btn" data-idx="${idx}" style="margin-top:8px;">
+            Verifica Ipotesi &amp; Simula (Stadio ${idx + 1})
+          </button>
+        </div>
+
+        <!-- COLONNA DESTRA -->
+        <div class="stage-right">
+          <div class="card">
+            <div class="reaction-equation" id="eqBar-${idx}"></div>
+          </div>
+
+          <div class="card">
+            <h3><span class="step-badge">3</span> Risultato, Struttura Prodotto &amp; Meccanismo</h3>
+            <div id="stageEmpty-${idx}" class="${st.outcome ? 'hidden' : ''}" style="color:var(--muted);font-size:0.9rem;">
+              Configura reagente, catalizzatore e formula la tua ipotesi a sinistra, poi clicca <strong>Verifica Ipotesi &amp; Simula</strong>.
+            </div>
+            <div id="stageResult-${idx}" class="${st.outcome ? '' : 'hidden'}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(sec);
+    updateStageHintsAndEq(idx);
+    if (st.outcome) renderStageOutcome(idx);
+  });
+
+  bindStageEvents();
+}
+
+function updateStageHintsAndEq(idx) {
+  const st = stagesState[idx];
+  const reag = REAGENTS.find(r => r.id === st.reagId);
+  const cat = CATALYSTS.find(c => c.id === st.catId);
+
+  if (idx === 0) {
+    const sub = INITIAL_SUBSTRATES.find(s => s.id === st.subId);
+    const sh = $(`subHint-${idx}`);
+    if (sh) sh.textContent = sub.hint;
+  }
+  const rh = $(`reagHint-${idx}`);
+  if (rh) rh.textContent = reag.hint;
+  const ch = $(`catHint-${idx}`);
+  if (ch) ch.textContent = cat.hint;
+
+  const eq = $(`eqBar-${idx}`);
+  if (eq) {
+    const subTxt = countSubs(st.ring) === 0 ? 'C₆H₆' : ringToText(st.ring);
+    const pillClass = st.outcome ? (st.outcome.noReaction ? 'pill none' : 'pill prod') : 'pill prod';
+    const pillTxt = st.outcome ? st.outcome.eqPillText : '? (formula l\'ipotesi)';
+    eq.innerHTML = `
+      <span class="pill">${subTxt}</span>
+      <span>+</span>
+      <span class="pill reag">${reag.formula}</span>
+      <span class="pill cat">${cat.short}</span>
+      <span style="font-size:1.1rem;color:var(--muted);">→</span>
+      <span class="${pillClass}">${pillTxt}</span>
+    `;
+  }
+}
+
+function bindStageEvents() {
+  document.querySelectorAll('.sub-select').forEach(el => {
+    el.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const sub = INITIAL_SUBSTRATES.find(s => s.id === e.target.value);
+      // Reset dell'intera catena quando si cambia il substrato iniziale
+      stagesState = [createStageState(0, sub.group ? [sub.group, null, null, null, null, null] : [null, null, null, null, null, null], sub.id)];
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.reag-select').forEach(el => {
+    el.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.idx, 10);
+      stagesState[idx].reagId = e.target.value;
+      stagesState[idx].outcome = null;
+      stagesState = stagesState.slice(0, idx + 1);
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.cat-select').forEach(el => {
+    el.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.idx, 10);
+      stagesState[idx].catId = e.target.value;
+      stagesState[idx].outcome = null;
+      stagesState = stagesState.slice(0, idx + 1);
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.benz-prod-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      stagesState[idx].hypBenzeneProd = btn.dataset.val;
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.react-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const val = btn.dataset.val;
+      stagesState[idx].hypReact = val;
+      if (val === 'NONE') stagesState[idx].hypRegio = 'NONE';
+      else if (stagesState[idx].hypRegio === 'NONE') stagesState[idx].hypRegio = null;
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.regio-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      stagesState[idx].hypRegio = btn.dataset.val;
+      renderAllStages();
+    });
+  });
+
+  document.querySelectorAll('.run-stage-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx, 10);
+      runStage(idx);
+    });
+  });
+}
+
+function runStage(idx) {
+  const st = stagesState[idx];
+  const isBenzene = countSubs(st.ring) === 0;
+
+  if (isBenzene) {
+    if (!st.hypBenzeneProd) {
+      alert('Seleziona il prodotto atteso della reazione sul Benzene (oppure "Nessuna reazione").');
+      return;
+    }
+  } else {
+    if (!st.hypReact) {
+      alert('Seleziona prima la tua ipotesi di reattività (Attivante, Disattivante o Nessuna reazione).');
+      return;
+    }
+    if (st.hypReact !== 'NONE' && !st.hypRegio) {
+      alert('Seleziona anche la regioselettività prevalente (Orto / Para oppure Meta).');
+      return;
+    }
+  }
+
+  const reag = REAGENTS.find(r => r.id === st.reagId);
+  const cat = CATALYSTS.find(c => c.id === st.catId);
+  const out = computeOutcome(st.ring, reag, cat);
+  st.outcome = out;
+  st.chosenNextPos = 'primary';
+
+  // Taglia eventuali stadi successivi vecchi finché l'utente non clicca "Prosegui"
+  stagesState = stagesState.slice(0, idx + 1);
+
+  // Registra in cronologia
+  const benzProdObj = BENZENE_HYP_PRODUCTS.find(p => p.id === st.hypBenzeneProd);
+  const hypStr = isBenzene
+    ? (st.hypBenzeneProd === 'NONE' ? 'Nessuna reaz.' : (benzProdObj ? benzProdObj.label : '—'))
+    : (st.hypReact === 'NONE' ? 'Nessuna reaz.' : `${st.hypReact} (${formatRegio(st.hypRegio)})`);
+  const realStr = out.noReaction
+    ? 'Nessuna reaz.'
+    : (out.isBenzene ? reag.benzeneProdName : `${out.reactivity} (${formatRegio(out.regio)})`);
+
+  const ok = evaluateHypothesis(st, out);
+  historyLog.unshift({
+    stage: idx + 1,
+    sub: ringToText(st.ring),
+    reag: reag.formula,
+    cat: cat.short,
+    hyp: hypStr,
+    real: realStr,
+    ok
+  });
+  renderHistory();
+  renderAllStages();
+}
+
+function evaluateHypothesis(st, out) {
+  if (out.isBenzene) {
+    if (out.noReaction) return st.hypBenzeneProd === 'NONE';
+    return st.hypBenzeneProd === out.reag.benzeneProdId;
+  }
+  if (out.noReaction) return st.hypReact === 'NONE';
+  return st.hypReact === out.reactivity && st.hypRegio === out.regio;
+}
+
+function formatRegio(r) {
+  if (r === 'OP') return 'Orto/Para';
+  if (r === 'META') return 'Meta';
+  if (r === 'EQ') return 'Equivalenti';
+  return '—';
+}
+
+function renderStageOutcome(idx) {
+  const st = stagesState[idx];
+  const out = st.outcome;
+  const resDiv = $(`stageResult-${idx}`);
+  const ok = evaluateHypothesis(st, out);
+
+  let bannerHtml = '';
+  if (ok) {
+    bannerHtml = `<div class="result-banner ok"><strong>✅ Ipotesi corretta!</strong> ${out.noReaction ? 'Nessuna reazione avviene in queste condizioni.' : `Esito confermato: ${out.isBenzene ? `<strong>${out.reag.benzeneProdName}</strong> (tutte le 6 posizioni equivalenti)` : `<strong>${out.reactivity}</strong>, orientamento <strong>${formatRegio(out.regio)}</strong>`}.`}</div>`;
+  } else {
+    bannerHtml = `<div class="result-banner bad"><strong>❌ Ipotesi da rivedere.</strong> Esito reale: ${out.noReaction ? '<strong>Nessuna reazione</strong>.' : out.isBenzene ? `<strong>${out.reag.benzeneProdName}</strong>.` : `<strong>${out.reactivity}</strong> con orientamento <strong>${formatRegio(out.regio)}</strong>.`}</div>`;
+  }
+
+  const showTopo = $('topologyFlag').checked;
+  const nextRing = st.chosenNextPos === 'secondary' && out.nextRingSecondary ? out.nextRingSecondary : out.nextRingPrimary;
+  const prodRingSvg = out.noReaction
+    ? drawRingSVG(75, 65, 32, out.ring, { showNumbers: true, showTopoLabels: true }).svg
+    : drawRingSVG(75, 65, 32, nextRing, { highlightPos: st.chosenNextPos === 'secondary' ? out.secondaryPos : out.primaryPos, showNumbers: true, showTopoLabels: true }).svg;
+  const secRingSvg = (!out.noReaction && out.nextRingSecondary)
+    ? drawRingSVG(75, 65, 32, out.nextRingSecondary, { highlightPos: out.secondaryPos, showNumbers: true, showTopoLabels: true }).svg
+    : '';
+
+  const newSubsCount = out.noReaction ? countSubs(out.ring) : countSubs(nextRing);
+  const canContinue = !out.noReaction && newSubsCount < MAX_SUBSTITUENTS && idx + 1 < MAX_STAGES && stagesState.length === idx + 1;
+  const reachedLimit = !out.noReaction && (newSubsCount >= MAX_SUBSTITUENTS || idx + 1 >= MAX_STAGES);
+
+  resDiv.innerHTML = `
+    ${bannerHtml}
+    <div class="product-row">
+      ${showTopo ? `
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <svg width="150" height="130" viewBox="0 0 150 130">${prodRingSvg}</svg>
+            <div style="font-size:0.72rem;color:#16a34a;font-weight:700;">${out.noReaction ? 'Anello invariato' : (out.nextRingSecondary ? 'Principale' : 'Prodotto')}</div>
+          </div>
+          ${secRingSvg ? `
+            <div style="text-align:center;">
+              <svg width="150" height="130" viewBox="0 0 150 130">${secRingSvg}</svg>
+              <div style="font-size:0.72rem;color:#2563eb;font-weight:700;">Isomero secondario</div>
+            </div>
+          ` : ''}
+        </div>
+      ` : ''}
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;font-weight:700;">Prodotto ottenuto</div>
+        <div style="font-weight:700;font-size:0.96rem;color:#0f172a;margin-top:2px;">${out.productText}</div>
+      </div>
+    </div>
+
+    ${out.trapMsg ? `<div class="trap-alert">${out.trapMsg}</div>` : ''}
+
+    ${!out.noReaction && !out.isBenzene ? `
+      <div class="comp-bars">
+        <div class="bar-row">
+          <span><strong>C${out.primaryPos + 1} (princip.)</strong></span>
+          <div class="bar-track"><div class="bar-fill" style="width:${out.pct.primary}%;background:#16a34a;"></div></div>
+          <span>${out.pct.primary}%</span>
+        </div>
+        ${out.secondaryPos !== null ? `
+          <div class="bar-row">
+            <span><strong>C${out.secondaryPos + 1} (second.)</strong></span>
+            <div class="bar-track"><div class="bar-fill" style="width:${out.pct.secondary}%;background:#2563eb;"></div></div>
+            <span>${out.pct.secondary}%</span>
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+
+    <div class="viz-grid">
+      <div class="svg-box">
+        <div class="svg-controls">
+          <strong>Meccanismo S<sub>E</sub>Ar</strong>
+          <div style="display:flex;gap:4px;">
+            <button type="button" class="btn-secondary step-btn ${st.step===0?'active':''}" data-idx="${idx}" data-step="0">1. E⁺</button>
+            <button type="button" class="btn-secondary step-btn ${st.step===1?'active':''}" data-idx="${idx}" data-step="1">2. Arenio</button>
+            <button type="button" class="btn-secondary step-btn ${st.step===2?'active':''}" data-idx="${idx}" data-step="2">3. Prod.</button>
+          </div>
+        </div>
+        <svg id="mechSvg-${idx}" viewBox="0 0 460 215" width="100%" height="215"></svg>
+        <div id="mechCap-${idx}" style="font-size:0.79rem;color:#475569;margin-top:3px;"></div>
+      </div>
+
+      <div class="svg-box">
+        <div class="svg-controls">
+          <strong>Profilo Energetico (ΔG)</strong>
+          <span style="font-size:0.76rem;color:var(--primary);font-weight:700;">${out.noReaction ? 'Bloccata' : out.eaShift < 0 ? 'Più veloce' : out.eaShift > 0 ? 'Più lento' : 'Riferimento'}</span>
+        </div>
+        <svg id="energySvg-${idx}" viewBox="0 0 320 215" width="100%" height="215"></svg>
+      </div>
+    </div>
+
+    <div class="criteria-list">
+      ${out.criteria.map(c => `<div class="crit-item"><strong>${c.title}</strong><span>${c.text}</span></div>`).join('')}
+    </div>
+
+    ${canContinue ? `
+      <div class="next-stage-bar">
+        <div>
+          <strong style="color:#1e3a8a;font-size:0.9rem;">Prosegui la sintesi su questo prodotto (${newSubsCount}/${MAX_SUBSTITUENTS} sostituenti)</strong>
+          ${out.nextRingSecondary ? `
+            <div style="margin-top:4px;font-size:0.82rem;">
+              Isomero da usare nello Stadio ${idx + 2}:
+              <select id="isoPick-${idx}" style="width:auto;padding:3px 8px;font-size:0.82rem;margin-left:4px;">
+                <option value="primary" ${st.chosenNextPos==='primary'?'selected':''}>Principale (C${out.primaryPos + 1})</option>
+                <option value="secondary" ${st.chosenNextPos==='secondary'?'selected':''}>Secondario (C${out.secondaryPos + 1})</option>
+              </select>
+            </div>
+          ` : ''}
+        </div>
+        <button type="button" class="btn-next" id="nextBtn-${idx}">➕ Agisci sul prodotto (Sezione ${idx + 2})</button>
+      </div>
+    ` : ''}
+
+    ${reachedLimit ? `
+      <div class="final-badge">🏁 Traguardo raggiunto: anello con ${newSubsCount} sostituenti (massimo consentito: 4 sostituenti / 4 sezioni)!</div>
+    ` : ''}
+  `;
+
+  drawStageMechanism(idx);
+  drawStageEnergy(idx);
+
+  // Eventi per i bottoni step del meccanismo
+  resDiv.querySelectorAll('.step-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      st.step = parseInt(b.dataset.step, 10);
+      renderStageOutcome(idx);
+    });
+  });
+
+  const isoPick = $(`isoPick-${idx}`);
+  if (isoPick) {
+    isoPick.addEventListener('change', () => {
+      st.chosenNextPos = isoPick.value;
+      renderStageOutcome(idx);
+    });
+  }
+
+  const nextBtn = $(`nextBtn-${idx}`);
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      const chosenRing = st.chosenNextPos === 'secondary' && out.nextRingSecondary ? out.nextRingSecondary : out.nextRingPrimary;
+      stagesState.push(createStageState(idx + 1, chosenRing));
+      renderAllStages();
+      const targetEl = $(`stage-${idx + 1}`);
+      if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+}
+
+function drawStageMechanism(idx) {
+  const st = stagesState[idx];
+  const out = st.outcome;
+  const svgEl = $(`mechSvg-${idx}`);
+  const cap = $(`mechCap-${idx}`);
+  const { reag, cat, noReaction } = out;
+
+  if (noReaction) {
+    const b = drawRingSVG(145, 110, 42, out.ring, {});
+    svgEl.innerHTML = `
+      ${b.svg}
+      <text x="235" y="115" font-size="20" font-weight="700" fill="#dc2626">+</text>
+      <text x="305" y="115" text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">${reag.formula}</text>
+      <line x1="210" y1="145" x2="360" y2="145" stroke="#dc2626" stroke-width="2.5"/>
+      <text x="285" y="140" text-anchor="middle" font-size="18" font-weight="800" fill="#dc2626">✕</text>
+      <text x="285" y="168" text-anchor="middle" font-size="12" fill="#991b1b">Nessuna reazione</text>
+    `;
+    cap.textContent = out.noReactionReason;
+    return;
+  }
+
+  const targetPos = st.chosenNextPos === 'secondary' && out.secondaryPos !== null ? out.secondaryPos : out.primaryPos;
+  const nextRing = st.chosenNextPos === 'secondary' && out.nextRingSecondary ? out.nextRingSecondary : out.nextRingPrimary;
+
+  if (st.step === 0) {
+    svgEl.innerHTML = `
+      <text x="230" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">Stadio 1: Attivazione e generazione dell'elettrofilo</text>
+      <text x="105" y="105" text-anchor="middle" font-size="15" font-weight="700" fill="#92400e">${reag.formula}</text>
+      <text x="175" y="105" text-anchor="middle" font-size="14" font-weight="700" fill="#475569">+ ${cat.short}</text>
+      <text x="235" y="105" text-anchor="middle" font-size="18" fill="#64748b">→</text>
+      <rect x="260" y="80" width="170" height="44" rx="8" fill="#eff6ff" stroke="#93c5fd"/>
+      <text x="345" y="100" text-anchor="middle" font-size="14" font-weight="700" fill="#1d4ed8">${reag.electro}</text>
+      <text x="345" y="116" text-anchor="middle" font-size="10.5" fill="#475569">Elettrofilo attivo</text>
+      <text x="230" y="170" text-anchor="middle" font-size="11.5" fill="#475569">L'anello aromatico richiede un elettrofilo forte per avviare la S_E_Ar.</text>
+    `;
+    cap.textContent = `Stadio 1: generazione di ${reag.electroFull}.`;
+  } else if (st.step === 1) {
+    const b1 = drawRingSVG(105, 115, 36, out.ring, { kekule: true });
+    const b2 = drawRingSVG(330, 115, 38, out.ring, { areniumArc: true, arcRot: targetPos * 60 - 60 });
+    const pt = b2.pts[targetPos];
+    svgEl.innerHTML = `
+      <text x="230" y="22" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Stadio 2 (LENTO): Formazione dello Ione Arenio (σ)</text>
+      ${b1.svg}
+      <text x="175" y="122" font-size="14" font-weight="800" fill="#dc2626">+ ${reag.electro}</text>
+      <text x="235" y="120" text-anchor="middle" font-size="18" fill="#64748b">→</text>
+      ${b2.svg}
+      <circle cx="${pt[0]}" cy="${pt[1]}" r="5" fill="#16a34a"/>
+      <text x="330" y="200" text-anchor="middle" font-size="11" font-weight="700" fill="#dc2626">Attacco su C${targetPos + 1} (C diventa sp³, + delocalizzata)</text>
+    `;
+    cap.textContent = `Stadio 2 (RDS): attacco in C${targetPos + 1}, formazione del complesso σ (ione arenio).`;
+  } else {
+    const b1 = drawRingSVG(105, 115, 36, out.ring, { areniumArc: true, arcRot: targetPos * 60 - 60 });
+    const b2 = drawRingSVG(330, 115, 38, nextRing, { highlightPos: targetPos });
+    svgEl.innerHTML = `
+      <text x="230" y="22" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0f172a">Stadio 3 (VELOCE): Deprotonazione e ripristino aromaticità</text>
+      ${b1.svg}
+      <text x="220" y="120" text-anchor="middle" font-size="16" fill="#64748b">− H⁺ →</text>
+      ${b2.svg}
+      <text x="330" y="202" text-anchor="middle" font-size="11.5" font-weight="700" fill="#16a34a">Aromaticità ripristinata (−${reag.prodGroup} in C${targetPos + 1})</text>
+    `;
+    cap.textContent = `Stadio 3: la base rimuove H⁺ da C${targetPos + 1} ripristinando l'anello aromatico.`;
+  }
+}
+
+function drawStageEnergy(idx) {
+  const out = stagesState[idx].outcome;
+  const svg = $(`energySvg-${idx}`);
+
+  if (out.noReaction) {
+    svg.innerHTML = `
+      <line x1="36" y1="185" x2="300" y2="185" stroke="#94a3b8" stroke-width="1.5"/>
+      <line x1="36" y1="20" x2="36" y2="185" stroke="#94a3b8" stroke-width="1.5"/>
+      <path d="M 45 140 Q 110 140 150 30" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-dasharray="5 4"/>
+      <text x="165" y="38" font-size="11" font-weight="700" fill="#dc2626">Barriera proibitiva / No E⁺</text>
+    `;
+    return;
+  }
+
+  const refTs1Y = 68, refIntY = 104, refTs2Y = 92;
+  const refPath = `M 42 145 C 78 145, 92 ${refTs1Y}, 122 ${refTs1Y} C 148 ${refTs1Y}, 158 ${refIntY}, 182 ${refIntY} C 204 ${refIntY}, 212 ${refTs2Y}, 230 ${refTs2Y} C 248 ${refTs2Y}, 260 160, 294 160`;
+  const ts1Y = Math.max(26, Math.min(98, refTs1Y - out.eaShift));
+  const intY = Math.max(55, Math.min(122, refIntY - out.eaShift * 0.7));
+  const ts2Y = Math.max(46, Math.min(118, refTs2Y - out.eaShift * 0.5));
+  const realPath = `M 42 145 C 78 145, 92 ${ts1Y}, 122 ${ts1Y} C 148 ${ts1Y}, 158 ${intY}, 182 ${intY} C 204 ${intY}, 212 ${ts2Y}, 230 ${ts2Y} C 248 ${ts2Y}, 260 160, 294 160`;
+  const color = out.eaShift < 0 ? '#16a34a' : out.eaShift > 0 ? '#d97706' : '#2563eb';
+
+  svg.innerHTML = `
+    <line x1="36" y1="185" x2="305" y2="185" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="36" y1="16" x2="36" y2="185" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="170" y="203" font-size="10.5" fill="#64748b" text-anchor="middle">Coordinata di reazione</text>
+    ${out.eaShift !== 0 ? `<path d="${refPath}" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="4 4"/>` : ''}
+    <path d="${realPath}" fill="none" stroke="${color}" stroke-width="2.8"/>
+    <text x="122" y="${ts1Y - 6}" font-size="10" font-weight="700" fill="${color}" text-anchor="middle">TS1 (RDS)</text>
+    <text x="182" y="${intY + 13}" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Arenio</text>
+    <text x="234" y="${ts2Y - 6}" font-size="9.5" fill="${color}" text-anchor="middle">TS2</text>
+    ${out.eaShift !== 0 ? `<text x="298" y="28" font-size="9.5" fill="#64748b" text-anchor="end">--- Benzene (rif.)</text>` : ''}
+  `;
+}
+
+function renderHistory() {
+  const tbody = $('historyBody');
+  if (historyLog.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">Nessun esperimento registrato ancora.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = historyLog.map(h => `
+    <tr>
+      <td>Stadio ${h.stage}</td>
+      <td>${h.sub} + ${h.reag}</td>
+      <td>${h.cat}</td>
+      <td>${h.hyp}</td>
+      <td>${h.real}</td>
+      <td class="${h.ok ? 'badge-ok' : 'badge-bad'}">${h.ok ? '✔ Corretta' : '✘ Errata'}</td>
+    </tr>
+  `).join('');
+}
+
+$('topologyFlag').addEventListener('change', renderAllStages);
+$('examMode').addEventListener('change', renderAllStages);
+$('resetAllBtn').addEventListener('click', resetAll);
+$('clearHistoryBtn').addEventListener('click', () => { historyLog = []; renderHistory(); });
+
+resetAll();
+</script>
+</body>
+</html>
