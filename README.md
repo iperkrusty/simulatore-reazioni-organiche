@@ -1,4 +1,4 @@
-# Simulatori di Reazioni Organiche — 5ASA
+# Simulatori di Reazioni Organiche
 
 Raccolta di simulatori didattici interattivi in HTML5 standalone per lo studio dei meccanismi di reazione della chimica organica, pubblicati su GitHub Pages:
 
