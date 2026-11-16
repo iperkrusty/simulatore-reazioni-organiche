@@ -15,6 +15,8 @@
       --primary-hover: #1d4ed8;
       --accent: #7c3aed;
       --accent-hover: #6d28d9;
+      --teal: #0d9488;
+      --teal-hover: #0f766e;
       --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
     }
 
@@ -39,7 +41,7 @@
 
     .container {
       width: 100%;
-      max-width: 960px;
+      max-width: 1120px;
     }
 
     header {
@@ -119,6 +121,11 @@
       color: #6d28d9;
     }
 
+    .icon-gen {
+      background: #ccfbf1;
+      color: #0f766e;
+    }
+
     .card h2 {
       font-size: 1.3rem;
       font-weight: 700;
@@ -180,6 +187,14 @@
       background: var(--accent-hover);
     }
 
+    .btn-teal {
+      background: var(--teal);
+    }
+
+    .btn-teal:hover {
+      background: var(--teal-hover);
+    }
+
     footer {
       text-align: center;
       margin-top: 2.5rem;
@@ -225,6 +240,21 @@
           </div>
         </div>
         <a class="btn btn-accent" href="simulatore_sear_benzene.html">Apri Simulatore S<sub>E</sub>Ar →</a>
+      </article>
+
+      <article class="card">
+        <div>
+          <div class="card-icon icon-gen">🧪</div>
+          <h2>Alcani, Alcheni, Carbonili &amp; Acidi</h2>
+          <p>Esercitati su sostituzione radicalica e deidrogenazione degli alcani, addizioni agli alcheni, aldeidi, chetoni, acidi carbossilici e derivati con la Modalità Scegli &amp; Ipotizza.</p>
+          <div class="tags">
+            <span class="tag">Alcani / Radicalica</span>
+            <span class="tag">Deidrogenazione</span>
+            <span class="tag">Aldeidi &amp; Chetoni</span>
+            <span class="tag">Acidi &amp; Derivati</span>
+          </div>
+        </div>
+        <a class="btn btn-teal" href="simulatore_organica.html">Apri Simulatore Generale →</a>
       </article>
     </main>
 
