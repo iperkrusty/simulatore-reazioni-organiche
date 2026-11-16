@@ -569,30 +569,30 @@ const REAGENTS = [
     name: 'Bromurazione (Br₂)',
     formula: 'Br₂',
     electro: 'Br⁺',
-    electroFull: 'Br⁺ (da Br₂ + FeBr₃ o AlCl₃)',
+    electroFull: 'Br⁺ (da Br₂ + AlBr₃)',
     prodGroup: 'Br',
     benzeneProdId: 'bromobenzene',
     benzeneProdName: 'Bromobenzene',
     byproduct: 'HBr',
     prodName: 'bromo',
-    reqCat: ['febr3', 'alcl3'],
+    reqCat: ['albr3'],
     fcReaction: false,
-    hint: 'Richiede FeBr₃ o AlCl₃ come acido di Lewis (su fenolo/anilina reagisce anche senza catalizzatore).'
+    hint: 'Richiede AlBr₃ come acido di Lewis (su fenolo/anilina reagisce anche senza catalizzatore).'
   },
   {
     id: 'cl2',
     name: 'Clorurazione (Cl₂)',
     formula: 'Cl₂',
     electro: 'Cl⁺',
-    electroFull: 'Cl⁺ (da Cl₂ + FeCl₃ o AlCl₃)',
+    electroFull: 'Cl⁺ (da Cl₂ + AlCl₃)',
     prodGroup: 'Cl',
     benzeneProdId: 'clorobenzene',
     benzeneProdName: 'Clorobenzene',
     byproduct: 'HCl',
     prodName: 'cloro',
-    reqCat: ['fecl3', 'alcl3'],
+    reqCat: ['alcl3'],
     fcReaction: false,
-    hint: 'Richiede FeCl₃ o AlCl₃ come catalizzatore acido di Lewis.'
+    hint: 'Richiede AlCl₃ come catalizzatore acido di Lewis.'
   },
   {
     id: 'hno3',
@@ -626,33 +626,48 @@ const REAGENTS = [
   },
   {
     id: 'fc_alk',
-    name: 'Alchilazione Friedel-Crafts (CH₃CH₂Cl)',
+    name: 'Alchilazione Friedel-Crafts (CH₃–CH₂–Cl)',
     formula: 'CH₃CH₂Cl',
     electro: 'CH₃CH₂⁺',
-    electroFull: 'CH₃CH₂⁺ (complesso con AlCl₃)',
+    electroFull: 'CH₃CH₂⁺ (complesso con FeCl₃)',
     prodGroup: 'CH₂CH₃',
     benzeneProdId: 'etilbenzene',
     benzeneProdName: 'Etilbenzene',
     byproduct: 'HCl',
     prodName: 'etil',
-    reqCat: ['alcl3'],
+    reqCat: ['fecl3'],
     fcReaction: true,
-    hint: 'Richiede AlCl₃. Non avviene su anelli più disattivati del clorobenzene né su anilina.'
+    hint: 'Richiede FeCl₃ (AlCl₃/AlBr₃ non validi). Non avviene su anelli più disattivati del clorobenzene né su anilina.'
+  },
+  {
+    id: 'fc_alk_br',
+    name: 'Alchilazione Friedel-Crafts (CH₃–CH₂–Br)',
+    formula: 'CH₃CH₂Br',
+    electro: 'CH₃CH₂⁺',
+    electroFull: 'CH₃CH₂⁺ (complesso con FeBr₃)',
+    prodGroup: 'CH₂CH₃',
+    benzeneProdId: 'etilbenzene',
+    benzeneProdName: 'Etilbenzene',
+    byproduct: 'HBr',
+    prodName: 'etil',
+    reqCat: ['febr3'],
+    fcReaction: true,
+    hint: 'Richiede FeBr₃ (AlCl₃/AlBr₃ non validi). Non avviene su anelli più disattivati del clorobenzene né su anilina.'
   },
   {
     id: 'fc_acyl',
     name: 'Acilazione Friedel-Crafts (CH₃COCl)',
     formula: 'CH₃COCl',
     electro: 'CH₃C≡O⁺',
-    electroFull: 'CH₃–C≡O⁺ (ione acilonio)',
+    electroFull: 'CH₃–C≡O⁺ (ione acilonio con FeCl₃)',
     prodGroup: 'COCH₃',
     benzeneProdId: 'acetofenone',
     benzeneProdName: 'Acetofenone',
     byproduct: 'HCl',
     prodName: 'acetil',
-    reqCat: ['alcl3'],
+    reqCat: ['fecl3'],
     fcReaction: true,
-    hint: 'Richiede AlCl₃. Genera lo ione acilonio stabilizzato per risonanza (nessuna trasposizione).'
+    hint: 'Richiede FeCl₃ (AlCl₃/AlBr₃ non validi). Genera lo ione acilonio stabilizzato per risonanza (nessuna trasposizione).'
   }
 ];
 
@@ -667,11 +682,12 @@ const BENZENE_HYP_PRODUCTS = [
 
 const CATALYSTS = [
   { id: 'none',       name: 'Nessun catalizzatore',         short: 'Nessuno',       hint: 'Senza catalizzatore l\'elettrofilo non è attivato (funziona solo per Br₂/Cl₂ su fenolo o anilina).' },
-  { id: 'febr3',      name: 'FeBr₃ (Acido di Lewis)',       short: 'FeBr₃',         hint: 'Catalizzatore specifico per la bromurazione con Br₂.' },
-  { id: 'fecl3',      name: 'FeCl₃ (Acido di Lewis)',       short: 'FeCl₃',         hint: 'Catalizzatore specifico per la clorurazione con Cl₂.' },
+  { id: 'febr3',      name: 'FeBr₃ (Acido di Lewis)',       short: 'FeBr₃',         hint: 'Catalizzatore specifico per alchilazione di Friedel-Crafts con CH₃–CH₂–Br.' },
+  { id: 'fecl3',      name: 'FeCl₃ (Acido di Lewis)',       short: 'FeCl₃',         hint: 'Catalizzatore specifico per Friedel-Crafts con CH₃–CH₂–Cl / CH₃COCl.' },
   { id: 'h2so4_conc', name: 'H₂SO₄ concentrato',            short: 'H₂SO₄ conc.',   hint: 'Genera NO₂⁺ da HNO₃ (miscela solfonitrica).' },
   { id: 'h2so4_fum',  name: 'H₂SO₄ fumante (Oleum)',        short: 'H₂SO₄ fumante', hint: 'Sorgente elettrofila di SO₃ per la solfonazione.' },
-  { id: 'alcl3',      name: 'AlCl₃ (Acido di Lewis)',       short: 'AlCl₃',         hint: 'Catalizzatore per alchilazione e acilazione di Friedel-Crafts.' }
+  { id: 'alcl3',      name: 'AlCl₃ (Acido di Lewis)',       short: 'AlCl₃',         hint: 'Catalizzatore specifico per la clorurazione con Cl₂.' },
+  { id: 'albr3',      name: 'AlBr₃ (Acido di Lewis)',       short: 'AlBr₃',         hint: 'Catalizzatore specifico per la bromurazione con Br₂.' }
 ];
 
 const MAX_STAGES = 4;
@@ -725,10 +741,10 @@ function computeOutcome(ring, reag, cat) {
 
   // 2. Casi speciali Anilina (-NH2)
   if (!noReaction && hasNH2) {
-    if (reag.fcReaction && cat.id === 'alcl3') {
+    if (reag.fcReaction) {
       noReaction = true;
-      noReactionReason = 'Il gruppo amminico (−NH₂) è una base di Lewis e coordina AlCl₃ formando un addotto disattivante: la Friedel-Crafts NON avviene!';
-      trapMsg = '⚠️ Trabocchetto classico: −NH₂ avvelena il catalizzatore AlCl₃!';
+      noReactionReason = 'Il gruppo amminico (−NH₂) è una base di Lewis e coordina il catalizzatore formando un addotto disattivante: la Friedel-Crafts NON avviene!';
+      trapMsg = '⚠️ Trabocchetto classico: −NH₂ avvelena il catalizzatore acido di Lewis!';
     } else if (reag.id === 'hno3' && cat.id === 'h2so4_conc') {
       trapMsg = '⚠️ Trabocchetto acido-base: in H₂SO₄ conc., −NH₂ si protona a −NH₃⁺ (fortemente DISATTIVANTE e META-orientante)!';
     }

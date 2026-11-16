@@ -1,0 +1,1583 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulatore di Reazioni Organiche — Didattico</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --purple-soft: #f5f3ff;
+      --purple-text: #6d28d9;
+      --cyan-soft: #ecfeff;
+      --cyan-text: #0e7490;
+      --success-bg: #f0fdf4;
+      --success-border: #16a34a;
+      --success-text: #15803d;
+      --warn-bg: #fffbeb;
+      --warn-border: #d97706;
+      --warn-text: #b45309;
+      --error-bg: #fef2f2;
+      --error-border: #dc2626;
+      --error-text: #b91c1c;
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Header */
+    .hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
+      color: #ffffff;
+      padding: 18px 24px;
+      box-shadow: 0 4px 18px rgba(30, 58, 138, 0.22);
+    }
+    .hero-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .hero-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .hero-sub {
+      margin: 3px 0 0;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.88);
+    }
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .study-pill, .mode-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 14px;
+      border-radius: 999px;
+      color: #ffffff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .study-pill:hover, .mode-btn:hover { background: rgba(255, 255, 255, 0.26); }
+    .mode-btn.active {
+      background: #f59e0b;
+      border-color: #fbbf24;
+      color: #0f172a;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+    }
+    .study-pill input { accent-color: #ffffff; width: 15px; height: 15px; cursor: pointer; }
+
+    /* Layout */
+    .container {
+      max-width: 1320px;
+      margin: 20px auto 36px;
+      padding: 0 20px;
+      display: grid;
+      gap: 18px;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 980px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Form Controls */
+    .field {
+      display: grid;
+      gap: 5px;
+      margin-bottom: 11px;
+    }
+    .field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      font: inherit;
+      color: var(--text);
+      background: #ffffff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+
+    .hint-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 12.5px;
+      color: #334155;
+      margin-bottom: 14px;
+    }
+    .hint-box strong { color: var(--primary-dark); }
+
+    /* Hypothesis Buttons */
+    .hyp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .hyp-btn {
+      padding: 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      display: grid;
+      gap: 1px;
+    }
+    .hyp-btn:hover {
+      border-color: #93c5fd;
+      background: #f8fafc;
+    }
+    .hyp-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    }
+    .hyp-btn .hyp-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .hyp-btn .hyp-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.32);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* Right Column: Equation Bar */
+    .right-stack { display: grid; gap: 18px; }
+    .equation-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 18px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13.5px;
+      border: 1px solid transparent;
+    }
+    .pill-sub { background: var(--primary-soft); color: var(--primary-dark); border-color: #bfdbfe; }
+    .pill-reag { background: var(--purple-soft); color: var(--purple-text); border-color: #ddd6fe; }
+    .pill-cond { background: var(--cyan-soft); color: var(--cyan-text); border-color: #a5f3fc; font-size: 11.5px; padding: 3px 10px; }
+    .pill-prod { background: var(--success-bg); color: var(--success-text); border-color: #bbf7d0; }
+    .pill-unknown { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+    .arrow-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .arrow-sym { font-size: 20px; font-weight: 700; color: #475569; line-height: 1; }
+
+    /* Validation Banner */
+    .banner {
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid transparent;
+      margin-bottom: 14px;
+    }
+    .banner.success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+    .banner.warn { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+    .banner.error { background: var(--error-bg); border-color: var(--error-border); color: var(--error-text); }
+    .banner-title { font-weight: 700; font-size: 14px; margin: 0 0 3px; display: flex; align-items: center; gap: 6px; }
+    .banner-desc { margin: 0; font-size: 13px; color: var(--text); opacity: 0.9; }
+
+    .summary-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .summary-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .summary-main {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .formula-tag {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .summary-why { margin: 6px 0 0; font-size: 13px; color: #334155; }
+
+    /* Mechanism + Energy 2-col */
+    .viz-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 720px) {
+      .viz-grid { grid-template-columns: 1fr; }
+    }
+    .sub-panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #ffffff;
+    }
+    .sub-panel h4 {
+      margin: 0 0 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stage-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .stage-tab {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .stage-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+    .stage-caption {
+      font-size: 12.5px;
+      color: #334155;
+      background: var(--primary-soft);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    /* Catalog */
+    .catalog-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .filter-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex: 1;
+    }
+    .filter-pill {
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: #334155;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .filter-pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+    .search-input {
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 9px;
+      font: inherit;
+      min-width: 240px;
+    }
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+      gap: 12px;
+    }
+    .cat-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: grid;
+      gap: 5px;
+      text-align: left;
+    }
+    .cat-card:hover {
+      border-color: #93c5fd;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+    .cat-card.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+    .cat-badge {
+      display: inline-block;
+      width: fit-content;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .cat-title { font-weight: 700; font-size: 13.5px; color: var(--text); }
+    .cat-sub { font-size: 12px; color: var(--muted); }
+
+    /* Log Table */
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .btn-ghost {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: #f8fafc; color: var(--text); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #f8fafc;
+    }
+    .status-chip {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .status-ok { background: var(--success-bg); color: var(--success-text); }
+    .status-err { background: var(--error-bg); color: var(--error-text); }
+
+    .hidden { display: none !important; }
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1 class="hero-title">🧪 Simulatore Didattico di Reazioni Organiche</h1>
+        <p class="hero-sub">Alcani e Cicloalcani (Radicalica &amp; Deidrogenazione), Alcheni, Alcoli, Aldeidi e Chetoni, Acidi Carbossilici e Derivati</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="mode-btn" id="challengeModeBtn" title="Scegli liberamente substrato e reagente senza svelare il risultato">
+          🎯 Modalità Scegli &amp; Ipotizza: <span id="challengeLabel">OFF</span>
+        </button>
+        <label class="study-pill">
+          <input type="checkbox" id="studyMode" checked />
+          <span>Modalità Studio (stadi del meccanismo)</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="main-grid">
+      <!-- Left Column -->
+      <div class="card">
+        <h2 class="step-header"><span class="step-badge">1</span> Scegli reagenti e condizioni</h2>
+
+        <div class="field" id="presetField">
+          <label for="presetSelect">Esempio rapido dal programma</label>
+          <select id="presetSelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="subSelect">Substrato</label>
+          <select id="subSelect"></select>
+        </div>
+
+        <div class="field">
+          <label for="reagSelect">Reagente/i</label>
+          <select id="reagSelect"></select>
+        </div>
+
+        <div class="hint-box" id="hintBox">
+          <strong>Contesto:</strong> Seleziona un substrato e un reagente oppure attiva la <em>Modalità Scegli &amp; Ipotizza</em> per esercitarti senza suggerimenti.
+        </div>
+
+        <h2 class="step-header"><span class="step-badge">2</span> Formula la tua ipotesi</h2>
+
+        <div class="hyp-grid" id="hypGrid"></div>
+
+        <div class="field">
+          <label for="prodInput">Prodotto ipotizzato (opzionale)</label>
+          <input id="prodInput" placeholder="es. bromoetano + HBr, etene + H2, 2-bromopropano..." />
+        </div>
+
+        <button class="btn-primary" id="verifyBtn">Verifica Ipotesi &amp; Simula</button>
+      </div>
+
+      <!-- Right Column -->
+      <div class="right-stack">
+        <div class="card equation-card" id="equationBar"></div>
+
+        <div class="card">
+          <h2 class="step-header"><span class="step-badge">3</span> Risultato, Meccanismo e Diagramma Energetico</h2>
+
+          <div id="validationBanner"></div>
+
+          <div class="summary-box" id="summaryBox"></div>
+
+          <div class="viz-grid" id="vizGrid">
+            <div class="sub-panel">
+              <h4>Meccanismo e Schema Molecolare</h4>
+              <div class="stage-tabs" id="stageTabs"></div>
+              <div id="mechSvgWrap"></div>
+              <div class="stage-caption" id="stageCaption"></div>
+            </div>
+            <div class="sub-panel">
+              <h4>Profilo Energetico (ΔG)</h4>
+              <div id="energyMeta" style="font-size:12.5px;font-weight:700;color:#2563eb;margin-bottom:6px;"></div>
+              <div id="energySvgWrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalog -->
+    <section class="card">
+      <h2 class="step-header"><span class="step-badge">📚</span> Catalogo delle Reazioni (<span id="catCount"></span>)</h2>
+      <div class="catalog-controls">
+        <div class="filter-pills" id="filterPills"></div>
+        <input class="search-input" id="searchInput" placeholder="Cerca substrato, prodotto o meccanismo..." />
+      </div>
+      <div class="catalog-grid" id="catalogGrid"></div>
+    </section>
+
+    <!-- Experiment Log -->
+    <section class="card">
+      <div class="log-header">
+        <h2 class="step-header" style="margin:0;"><span class="step-badge">📋</span> Registro Esperimenti</h2>
+        <button class="btn-ghost" id="clearLogBtn">Pulisci registro</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Substrato + Reagente</th>
+              <th>Ipotesi formulata</th>
+              <th>Prodotto principale</th>
+              <th>Esito</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr><td colspan="5" style="color:var(--muted);text-align:center;">Nessuna simulazione registrata in questa sessione. Premi "Verifica Ipotesi &amp; Simula".</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Simulatore didattico: Alcani e Cicloalcani (Sostituzione radicalica e Deidrogenazione), Alcheni, Alcoli, Aldeidi e Chetoni, Acidi Carbossilici e Derivati.
+    </p>
+  </main>
+
+  <script>
+    const HYP_CATEGORIES = [
+      { id: "rad-sub", title: "Sostituzione radicalica", sub: "Alcani e Cicloalcani (Cl₂/Br₂, hν)" },
+      { id: "dehydro", title: "Deidrogenazione alcani", sub: "Eliminazione H₂ ad alta T (Pt / Cr₂O₃)" },
+      { id: "add-el", title: "Addizione elettrofila", sub: "Alcheni (HX, H₂O, H₂)" },
+      { id: "add-nu", title: "Addizione nucleofila C=O", sub: "Aldeidi e Chetoni" },
+      { id: "cond", title: "Condensazione (Aldolica/Claisen)", sub: "Enolati / Carboni α" },
+      { id: "acyl-sub", title: "Sostituzione nucleofila acilica", sub: "Acidi e Derivati (RCOZ)" },
+      { id: "hydrolysis", title: "Idrolisi / Saponificazione", sub: "Esteri" },
+      { id: "redox", title: "Ossidazione / Riduzione", sub: "PCC, Tollens, NaBH₄, DIBAL-H" }
+    ];
+
+    const REACTIONS = [
+      // --- ALCANI E CICLOALCANI (SOSTITUZIONE RADICALICA & DEIDROGENAZIONE) ---
+      {
+        id: "ch4-cl2",
+        s: "metano",
+        r: "Cl2 / hν (luce UV)",
+        p: "clorometano + HCl",
+        f: "CH₃Cl + HCl",
+        g: "Alcani e Cicloalcani",
+        t: "Clorurazione radicalica del metano",
+        cat: "rad-sub",
+        c: "Luce UV (hν) o calore (>250 °C)",
+        scheme: "CH₃—Cl + HCl",
+        kinetics: "Reazione a catena • Inizio, Propagazione, Terminazione",
+        energyType: "two-step-exo",
+        why: "La luce UV scinde omoliticamente Cl₂ in due radicali Cl• che innescano una reazione a catena formando il legame C–Cl.",
+        steps: [
+          "Inizio: scissione omolitica di Cl—Cl per effetto della luce UV → 2 Cl•.",
+          "Propagazione 1: Cl• estrae un H• dal metano → radicale metile •CH₃ + HCl.",
+          "Propagazione 2: •CH₃ reagisce con Cl₂ → clorometano (CH₃Cl) + Cl• che continua il ciclo.",
+          "Terminazione: ricombinazione di due radicali (es. •CH₃ + Cl• → CH₃Cl)."
+        ]
+      },
+      {
+        id: "c2h6-br2",
+        s: "etano",
+        r: "Br2 / hν (luce UV)",
+        p: "bromoetano + HBr",
+        f: "CH₃—CH₂—Br + HBr",
+        g: "Alcani e Cicloalcani",
+        t: "Bromurazione radicalica dell'etano",
+        cat: "rad-sub",
+        c: "Luce UV (hν) o calore",
+        scheme: "CH₃—CH₂—Br + HBr",
+        kinetics: "Reazione a catena • Tutti i 6 H dell'etano sono equivalenti (1°)",
+        energyType: "two-step-exo",
+        why: "L'etano ha 6 idrogeni equivalenti: l'alogenazione radicalica con Br₂ porta alla sostituzione di un H con Br formando bromoetano (CH₃–CH₂–Br).",
+        steps: [
+          "Inizio: scissione omolitica di Br—Br tramite luce UV → 2 Br•.",
+          "Propagazione 1: Br• estrae un H• dall'etano → radicale etile CH₃—C•H₂ + HBr.",
+          "Propagazione 2: il radicale etile reagisce con Br₂ → bromoetano (CH₃—CH₂—Br) + Br•.",
+          "Terminazione: accoppiamento di due radicali (es. CH₃—C•H₂ + Br• → CH₃—CH₂—Br)."
+        ]
+      },
+      {
+        id: "c2h6-cl2",
+        s: "etano",
+        r: "Cl2 / hν (luce UV)",
+        p: "cloroetano + HCl",
+        f: "CH₃—CH₂—Cl + HCl",
+        g: "Alcani e Cicloalcani",
+        t: "Clorurazione radicalica dell'etano",
+        cat: "rad-sub",
+        c: "Luce UV (hν) o calore",
+        scheme: "CH₃—CH₂—Cl + HCl",
+        kinetics: "Reazione a catena • Sostituzione radicalica",
+        energyType: "two-step-exo",
+        why: "La clorurazione radicalica dell'etano sostituisce un idrogeno con un atomo di cloro generando cloroetano (CH₃–CH₂–Cl) e HCl.",
+        steps: [
+          "Inizio: la luce UV rompe il legame Cl—Cl → 2 Cl•.",
+          "Propagazione 1: Cl• estrae un H• dall'etano → radicale etile CH₃—C•H₂ + HCl.",
+          "Propagazione 2: CH₃—C•H₂ attacca Cl₂ → cloroetano (CH₃—CH₂—Cl) + Cl•."
+        ]
+      },
+      {
+        id: "prop-br2",
+        s: "propano",
+        r: "Br2 / hν (luce UV)",
+        p: "2-bromopropano + HBr",
+        f: "C₃H₇Br + HBr",
+        g: "Alcani e Cicloalcani",
+        t: "Bromurazione radicalica regioselettiva",
+        cat: "rad-sub",
+        c: "Br₂, luce UV (hν) o calore",
+        scheme: "CH₃—CH(Br)—CH₃ (maggioritario)",
+        kinetics: "Selettiva su C secondario • Stabilità radicali 3° > 2° > 1°",
+        energyType: "two-step-exo",
+        why: "Il radicale Br• è molto selettivo: estrae preferenzialmente l'idrogeno dal carbonio secondario formando il radicale isopropile più stabile.",
+        steps: [
+          "Inizio: scissione omolitica di Br₂ → 2 Br•.",
+          "Propagazione 1: Br• strappa un H• dal CH₂ centrale formando il radicale 2° CH₃—C•H—CH₃.",
+          "Propagazione 2: il radicale 2° attacca Br₂ → 2-bromopropano + Br•."
+        ]
+      },
+      {
+        id: "cicloesano-cl2",
+        s: "cicloesano",
+        r: "Cl2 / hν (luce UV)",
+        p: "clorocicloesano + HCl",
+        f: "C₆H₁₁Cl + HCl",
+        g: "Alcani e Cicloalcani",
+        t: "Sostituzione radicalica su cicloalcano",
+        cat: "rad-sub",
+        c: "Cl₂ in eccesso di cicloesano, luce UV",
+        scheme: "C₆H₁₁—Cl + HCl",
+        kinetics: "Reazione a catena • Tutti i C sono equivalenti (2°)",
+        energyType: "two-step-exo",
+        why: "Nel cicloesano tutti i 12 atomi di idrogeno sono equivalenti: la monoclorurazione radicalica produce un unico prodotto principale, il clorocicloesano.",
+        steps: [
+          "Inizio: la luce UV scinde Cl₂ in due radicali Cl•.",
+          "Propagazione 1: Cl• estrae un H• dall'anello → radicale cicloesile + HCl.",
+          "Propagazione 2: il radicale cicloesile reagisce con Cl₂ → clorocicloesano + Cl•."
+        ]
+      },
+      {
+        id: "dehydro-c2h6",
+        s: "etano",
+        r: "Δ, catalizzatore (Pt / Cr2O3)",
+        p: "etene + H2",
+        f: "CH₂=CH₂ + H₂",
+        g: "Alcani e Cicloalcani",
+        t: "Deidrogenazione catalitica dell'etano",
+        cat: "dehydro",
+        c: "Alta temperatura (500–700 °C), catalizzatore Pt o Cr₂O₃",
+        scheme: "CH₂=CH₂ + H₂",
+        kinetics: "Fortemente endotermica (ΔH > 0) • Inversa dell'idrogenazione",
+        energyType: "endothermic",
+        why: "L'etano (come tutti gli alcani tranne il metano) perde H₂ ad alta temperatura su catalizzatore metallico/ossido formando l'alchene corrispondente (etene).",
+        steps: [
+          "Adsorbimento dell'etano sulla superficie del catalizzatore (Pt, Pd o Cr₂O₃).",
+          "Rottura assistita dal catalizzatore di due legami C–H su carboni adiacenti.",
+          "Formazione del doppio legame C=C (etene) e desorbimento di H₂ gassoso."
+        ]
+      },
+      {
+        id: "dehydro-c3h8",
+        s: "propano",
+        r: "Δ, catalizzatore (Pt / Cr2O3)",
+        p: "propene + H2",
+        f: "CH₃—CH=CH₂ + H₂",
+        g: "Alcani e Cicloalcani",
+        t: "Deidrogenazione catalitica del propano",
+        cat: "dehydro",
+        c: "Alta temperatura, catalizzatore Pt o Cr₂O₃ (processo industriale)",
+        scheme: "CH₃—CH=CH₂ + H₂",
+        kinetics: "Fortemente endotermica (ΔH > 0) • Favorita ad alta T",
+        energyType: "endothermic",
+        why: "Processo industriale su larga scala per convertire il propano in propilene (propene), monomero chiave per materie plastiche.",
+        steps: [
+          "Il propano si adsorbe sul catalizzatore (es. Cr₂O₃/Al₂O₃ o Pt) ad alta temperatura.",
+          "Eliminazione catalitica di due atomi di idrogeno da C1 e C2.",
+          "Formazione di propene e liberazione di H₂; il catalizzatore evita il cracking termico C–C."
+        ]
+      },
+      {
+        id: "dehydro-c4h10",
+        s: "butano",
+        r: "Δ, catalizzatore (Pt / Cr2O3)",
+        p: "1,3-butadiene + 2 H2",
+        f: "C₄H₆ + 2 H₂",
+        g: "Alcani e Cicloalcani",
+        t: "Deidrogenazione del butano a diene",
+        cat: "dehydro",
+        c: "Alta temperatura, catalizzatore Cr₂O₃ o Pt/ZnO",
+        scheme: "CH₂=CH—CH=CH₂ + 2 H₂",
+        kinetics: "Endotermica • Produzione industriale di gomme sintetiche",
+        energyType: "endothermic",
+        why: "La deidrogenazione catalitica del butano rimuove due molecole di H₂ formando 1,3-butadiene, fondamentale per la produzione di gomme.",
+        steps: [
+          "Prima deidrogenazione catalitica del butano ad alta temperatura → butene + H₂.",
+          "Seconda deidrogenazione del butene sul catalizzatore → 1,3-butadiene + H₂.",
+          "L'elevata temperatura spinge l'equilibrio endotermico verso il diene coniugato."
+        ]
+      },
+
+      // --- ALCHENI ---
+      {
+        id: "propene",
+        s: "propene",
+        r: "HBr",
+        p: "2-bromopropano",
+        f: "C₃H₇Br",
+        g: "Alcheni",
+        t: "Addizione elettrofila HX",
+        cat: "add-el",
+        c: "HBr senza perossidi",
+        scheme: "CH₃—CH(Br)—CH₃",
+        kinetics: "2 stadi • Intermedio carbocationico 2°",
+        energyType: "two-step-exo",
+        why: "Regola di Markovnikov: è favorito il carbocatione secondario sul carbonio centrale, più stabile del primario.",
+        steps: [
+          "Il legame π dell'alchene attacca H⁺ di HBr e si apre.",
+          "Si forma preferenzialmente il carbocatione secondario CH₃—C⁺H—CH₃.",
+          "Br⁻ attacca il carbocatione planare formando 2-bromopropano.",
+          "In presenza di perossidi prevale invece la via radicalica anti-Markovnikov."
+        ]
+      },
+      {
+        id: "hyd",
+        s: "etene",
+        r: "H2 / Pd-C",
+        p: "etano",
+        f: "C₂H₆",
+        g: "Alcheni",
+        t: "Idrogenazione catalitica",
+        cat: "add-el",
+        c: "H₂, catalizzatore Pd/C",
+        scheme: "CH₃—CH₃",
+        kinetics: "Addizione sin su superficie metallica",
+        energyType: "one-step-exo",
+        why: "Riduzione del doppio legame C=C a legame semplice C–C con aggiunta di due idrogeni (processo esotermico inverso alla deidrogenazione).",
+        steps: [
+          "H₂ si dissocia e viene attivato sulla superficie del palladio (Pd/C).",
+          "L'etene si adsorbe sul catalizzatore tramite gli elettroni π.",
+          "Due atomi di H sono trasferiti sullo stesso lato (sin) formando etano."
+        ]
+      },
+      {
+        id: "hydr",
+        s: "etene",
+        r: "H2O / H2SO4",
+        p: "etanolo",
+        f: "C₂H₆O",
+        g: "Alcheni",
+        t: "Idratazione acido-catalizzata",
+        cat: "add-el",
+        c: "Acqua, catalisi acida H₂SO₄",
+        scheme: "CH₃—CH₂—OH",
+        kinetics: "Multistadio • Catalisi acida",
+        energyType: "two-step-exo",
+        why: "Addizione elettrofila di acqua all'alchene simmetrico in ambiente acido.",
+        steps: [
+          "Protonazione del doppio legame C=C con formazione del carbocatione.",
+          "Attacco nucleofilo dell'acqua (H₂O) sul carbonio elettrofilo.",
+          "Deprotonazione finale e rigenerazione del catalizzatore: etanolo."
+        ]
+      },
+
+      // --- ALCOLI ---
+      {
+        id: "ox",
+        s: "etanolo",
+        r: "PCC",
+        p: "etanale",
+        f: "C₂H₄O",
+        g: "Alcoli",
+        t: "Ossidazione selettiva di alcol primario",
+        cat: "redox",
+        c: "PCC, condizioni anidre",
+        scheme: "CH₃—C(=O)—H",
+        kinetics: "Ossidazione controllata ad aldeide",
+        energyType: "one-step-exo",
+        why: "Il PCC in ambiente anidro arresta l'ossidazione dell'alcol primario ad aldeide senza proseguire ad acido carbossilico.",
+        steps: [
+          "L'ossigeno dell'etanolo si coordina al cromo formando l'estere cromico.",
+          "Rimozione di un protone dal carbonio che porta il gruppo –OH.",
+          "Eliminazione e formazione del gruppo carbonilico C=O: etanale."
+        ]
+      },
+
+      // --- ALDEIDI E CHETONI ---
+      {
+        id: "red",
+        s: "propanone (acetone)",
+        r: "NaBH4",
+        p: "propan-2-olo",
+        f: "C₃H₈O",
+        g: "Aldeidi e Chetoni",
+        t: "Riduzione del chetone con idruri",
+        cat: "redox",
+        c: "NaBH₄, successiva protonazione H₂O",
+        scheme: "CH₃—CH(OH)—CH₃",
+        kinetics: "Attacco nucleofilo di idruro H⁻",
+        energyType: "two-step-exo",
+        why: "Lo ione idruro riduce il carbonile C=O polarizzato del chetone formando un alcol secondario.",
+        steps: [
+          "L'idruro H⁻ (da BH₄⁻) attacca il carbonio δ⁺ del gruppo C=O.",
+          "Gli elettroni π si spostano sull'ossigeno formando uno ione alcossido.",
+          "La protonazione finale con acqua fornisce propan-2-olo."
+        ]
+      },
+      {
+        id: "hcn-add",
+        s: "propanone (acetone)",
+        r: "HCN / KOH",
+        p: "cianidrina dell'acetone",
+        f: "C₄H₇NO",
+        g: "Aldeidi e Chetoni",
+        t: "Addizione nucleofila di HCN (Cianidrine)",
+        cat: "add-nu",
+        c: "HCN in presenza di base catalitica (KOH)",
+        scheme: "(CH₃)₂C(OH)(CN)",
+        kinetics: "2 stadi • Nucleofilo ⁻CN",
+        energyType: "two-step-exo",
+        why: "La base genera lo ione cianuro ⁻CN (nucleofilo forte al carbonio), che attacca il carbonile sp² formando un intermedio tetraedrico sp³.",
+        steps: [
+          "KOH deprotona HCN generando il nucleofilo ⁻C≡N.",
+          "Attacco nucleofilo di ⁻CN al carbonio carbonilico δ⁺ → intermedio alcossido.",
+          "Protonazione dell'ossigeno alcossido da parte di HCN: si forma la cianidrina."
+        ]
+      },
+      {
+        id: "acetal",
+        s: "etanale (acetaldeide)",
+        r: "2 ROH / H+",
+        p: "acetale + H2O",
+        f: "R'CH(OR)₂",
+        g: "Aldeidi e Chetoni",
+        t: "Addizione di alcoli (Semiacetali e Acetali)",
+        cat: "add-nu",
+        c: "Eccesso di alcol ROH, catalisi acida H⁺",
+        scheme: "CH₃—CH(OR)₂ + H₂O",
+        kinetics: "Reversibile • Passa per carbocatione stabilizzato",
+        energyType: "two-step-exo",
+        why: "In catalisi acida l'aldeide forma prima il semiacetale (1 alcol) e poi, con un secondo equivalente di ROH, l'acetale.",
+        steps: [
+          "Protonazione dell'ossigeno carbonilico per attivare il C=O.",
+          "Attacco nucleofilo della prima molecola di ROH → semiacetale.",
+          "Protonazione di –OH e perdita di H₂O → carbocatione stabilizzato per risonanza.",
+          "Attacco della seconda molecola di ROH e deprotonazione → acetale."
+        ]
+      },
+      {
+        id: "immina",
+        s: "etanale (acetaldeide)",
+        r: "RNH2 (ammina 1°)",
+        p: "immina + H2O",
+        f: "CH₃CH=NR",
+        g: "Aldeidi e Chetoni",
+        t: "Addizione di azoto-derivati (Immine)",
+        cat: "add-nu",
+        c: "pH debolmente acido, rimozione di H₂O",
+        scheme: "CH₃—CH=N—R + H₂O",
+        kinetics: "Addizione nucleofila + disidratazione",
+        energyType: "two-step-exo",
+        why: "L'ammina primaria usa il doppietto sull'azoto per attaccare il carbonile formando una carbinolammina che elimina acqua dando l'immina (C=N).",
+        steps: [
+          "Attacco nucleofilo del doppietto di RNH₂ sul carbonio carbonilico.",
+          "Trasferimento protonico → intermedio tetraedrico (carbinolammina).",
+          "Eliminazione di una molecola d'acqua e formazione del doppio legame C=NR."
+        ]
+      },
+      {
+        id: "aldol",
+        s: "etanale (acetaldeide)",
+        r: "NaOH diluito",
+        p: "3-idrossibutanale (aldolo)",
+        f: "C₄H₈O₂",
+        g: "Aldeidi e Chetoni",
+        t: "Condensazione aldolica",
+        cat: "cond",
+        c: "NaOH diluito (a caldo disidrata a trans-2-butenale)",
+        scheme: "CH₃—CH(OH)—CH₂—CHO",
+        kinetics: "Via anione enolato stabilizzato per risonanza",
+        energyType: "two-step-exo",
+        why: "Gli idrogeni in α al carbonile sono acidi (pKa ≈ 17): la base forma l'enolato che attacca una seconda molecola di aldeide formando un nuovo legame C–C.",
+        steps: [
+          "OH⁻ strappa un H⁺ in posizione α formando l'anione enolato.",
+          "Il carbonio α nucleofilo dell'enolato attacca il C=O di una seconda molecola di etanale.",
+          "Protonazione da H₂O → 3-idrossibutanale (che scaldato perde H₂O dando l'enale coniugato)."
+        ]
+      },
+      {
+        id: "tollens",
+        s: "etanale (aldeide)",
+        r: "2 Ag(NH3)2+ / 3 OH-",
+        p: "ione acetato + 2 Ag (specchio)",
+        f: "CH₃COO⁻ + 2 Ag↓",
+        g: "Aldeidi e Chetoni",
+        t: "Saggio di Tollens (Ossidazione selettiva)",
+        cat: "redox",
+        c: "Reattivo di Tollens in ambiente basico",
+        scheme: "CH₃COO⁻ + 2 Ag↓ + 4 NH₃",
+        kinetics: "Redox • Distingue aldeidi da chetoni",
+        energyType: "one-step-exo",
+        why: "Le aldeidi si ossidano facilmente a carbossilato riducendo Ag⁺ ad argento metallico (specchio d'argento); i chetoni non reagiscono.",
+        steps: [
+          "Il complesso argento-ammoniacale Ag(NH₃)₂⁺ ossida il gruppo aldeidico –CHO.",
+          "L'aldeide si trasforma nello ione carbossilato RCOO⁻.",
+          "Ag⁺ si riduce ad Ag⁰ metallico depositandosi sulle pareti (specchio d'argento)."
+        ]
+      },
+
+      // --- ACIDI CARBOSSILICI E DERIVATI ---
+      {
+        id: "est",
+        s: "acido etanoico + etanolo",
+        r: "H2SO4, calore",
+        p: "etanoato di etile + acqua",
+        f: "C₄H₈O₂ + H₂O",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Esterificazione di Fischer",
+        cat: "acyl-sub",
+        c: "H₂SO₄ catalitico, riscaldamento",
+        scheme: "CH₃—C(=O)—O—CH₂—CH₃",
+        kinetics: "Equilibrio reversibile (ΔG ≈ 0) • Intermedio tetraedrico",
+        energyType: "equilibrium",
+        why: "Acido + alcol ⇌ estere + acqua: la catalisi acida attiva il carbonile e l'allontanamento di H₂O sposta l'equilibrio verso l'estere.",
+        steps: [
+          "Protonazione dell'ossigeno carbonilico dell'acido etanoico.",
+          "Attacco nucleofilo dell'etanolo e formazione dell'intermedio tetraedrico.",
+          "Trasferimenti protonici e perdita di una molecola d'acqua.",
+          "Deprotonazione finale con rigenerazione di H⁺: etanoato di etile."
+        ]
+      },
+      {
+        id: "socl2",
+        s: "acido acetico",
+        r: "SOCl2",
+        p: "cloruro di acetile + SO2 + HCl",
+        f: "CH₃COCl",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Sintesi di cloruri acilici",
+        cat: "acyl-sub",
+        c: "Cloruro di tionile (SOCl₂)",
+        scheme: "CH₃—C(=O)—Cl + SO₂↑ + HCl↑",
+        kinetics: "Via anidride mista (clorosolfito)",
+        energyType: "one-step-exo",
+        why: "SOCl₂ trasforma il pessimo gruppo uscente –OH in un ottimo gruppo uscente; i sottoprodotti SO₂ e HCl sono gassosi e si allontanano facilmente.",
+        steps: [
+          "L'acido acetico reagisce con SOCl₂ formando un'anidride mista (clorosolfito).",
+          "Lo ione Cl⁻ attacca il carbonile formando l'intermedio tetraedrico.",
+          "Espulsione del gruppo uscente con sviluppo di SO₂ e HCl gassosi → cloruro di acetile."
+        ]
+      },
+      {
+        id: "rcocl-nh3",
+        s: "cloruro di acetile",
+        r: "2 NH3",
+        p: "acetammide + NH4Cl",
+        f: "CH₃CONH₂",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Sostituzione nucleofila acilica (Cloruro → Ammide)",
+        cat: "acyl-sub",
+        c: "2 equivalenti di NH₃ (o ammina + NEt₃)",
+        scheme: "CH₃—C(=O)—NH₂ + NH₄⁺Cl⁻",
+        kinetics: "2 stadi • Cl⁻ ottimo gruppo uscente",
+        energyType: "two-step-exo",
+        why: "I cloruri acilici sono i derivati più reattivi degli acidi carbossilici: reagiscono rapidamente a T ambiente con NH₃; il 2° equivalente neutralizza HCl.",
+        steps: [
+          "Attacco nucleofilo di NH₃ sul carbonile molto elettrofilo del cloruro acilico.",
+          "Formazione dell'intermedio tetraedrico.",
+          "Eliminazione di Cl⁻ (ottimo gruppo uscente) e deprotonazione con il 2° equiv. di NH₃."
+        ]
+      },
+      {
+        id: "aspirina",
+        s: "acido salicilico",
+        r: "anidride acetica / H+",
+        p: "acido acetilsalicilico (aspirina)",
+        f: "C₉H₈O₄",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Acetilazione via anidride",
+        cat: "acyl-sub",
+        c: "Leggera catalisi acida, 60–70 °C",
+        scheme: "o-C₆H₄(OCOCH₃)(COOH) + CH₃COOH",
+        kinetics: "Catalisi intramolecolare nell'intermedio",
+        energyType: "two-step-exo",
+        why: "Le anidridi trasferiscono facilmente il gruppo acetile all'ossidrile fenolico dell'acido salicilico liberando acido acetico come sottoprodotto.",
+        steps: [
+          "Attacco nucleofilo del gruppo –OH dell'acido salicilico su un carbonile dell'anidride.",
+          "Formazione dell'intermedio tetraedrico con trasferimento protonico.",
+          "Eliminazione dello ione acetato / acido acetico e formazione dell'aspirina."
+        ]
+      },
+      {
+        id: "saponif",
+        s: "acetato di etile",
+        r: "OH- / H2O",
+        p: "ione acetato + etanolo",
+        f: "CH₃COO⁻ + C₂H₅OH",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Saponificazione (Idrolisi basica degli esteri)",
+        cat: "hydrolysis",
+        c: "Base forte OH⁻ in acqua (irreversibile)",
+        scheme: "CH₃COO⁻ + CH₃CH₂OH",
+        kinetics: "Intermedio tetraedrico + passaggio acido-base irreversibile",
+        energyType: "two-step-exo",
+        why: "L'idrolisi basica è irreversibile perché l'acido formato cede subito un protone all'alcossido RO⁻ formando lo ione carbossilato stabilizzato per risonanza.",
+        steps: [
+          "Attacco nucleofilo di OH⁻ sul carbonile dell'estere → intermedio tetraedrico.",
+          "Espulsione dello ione etossido EtO⁻ con formazione di acido acetico.",
+          "Passaggio irreversibile: EtO⁻ strappa H⁺ all'acido dando ione acetato + etanolo."
+        ]
+      },
+      {
+        id: "dibal",
+        s: "acetato di metile",
+        r: "DIBAL-H (-70 °C), poi H3O+",
+        p: "acetaldeide + metanolo",
+        f: "CH₃CHO",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Riduzione controllata di estere ad aldeide",
+        cat: "redox",
+        c: "1 eq. DIBAL-H in CH₂Cl₂ a -70 °C",
+        scheme: "CH₃—CHO + CH₃OH",
+        kinetics: "Addotto acido di Lewis stabile a bassa T",
+        energyType: "two-step-exo",
+        why: "A -70 °C con un solo equivalente di DIBAL-H l'intermedio tetraedrico legato all'alluminio è stabile e libera l'aldeide solo al workup acquoso.",
+        steps: [
+          "L'ossigeno carbonilico si coordina all'alluminio (acido di Lewis) di DIBAL-H.",
+          "Trasferimento intramolecolare di un idruro al carbonio carbonilico.",
+          "L'intermedio resta stabile a -70 °C; l'idrolisi acida finale libera acetaldeide."
+        ]
+      },
+      {
+        id: "hvz",
+        s: "acido propanoico",
+        r: "Cl2 / PCl3 (tracce)",
+        p: "acido 2-cloropropanoico",
+        f: "C₃H₅ClO₂",
+        g: "Acidi Carbossilici e Derivati",
+        t: "α-Alogenazione (Hell-Volhard-Zelinsky)",
+        cat: "cond",
+        c: "Cl₂, quantità catalitica di PCl₃",
+        scheme: "CH₃—CH(Cl)—COOH",
+        kinetics: "Reazione a catena via enolo del cloruro acilico",
+        energyType: "two-step-exo",
+        why: "Gli acidi carbossilici non enolizzano facilmente: PCl₃ genera tracce di cloruro acilico che tautomerizza ad enolo, reagisce in α con Cl₂ e scambia con l'acido.",
+        steps: [
+          "Inizio: PCl₃ converte tracce di acido propanoico in cloruro di propanoile.",
+          "Tautomeria cheto-enolica del cloruro acilico e attacco su Cl₂ in posizione α.",
+          "Scambio acilico con un'altra molecola di acido: si libera l'acido α-clorurato e si rigenera il cloruro."
+        ]
+      },
+      {
+        id: "claisen",
+        s: "acetato di etile",
+        r: "EtO- / EtOH",
+        p: "acetacetato di etile + EtOH",
+        f: "C₆H₁₀O₃",
+        g: "Acidi Carbossilici e Derivati",
+        t: "Condensazione di Claisen (β-chetoesteri)",
+        cat: "cond",
+        c: "Base alcossido corrispondente (EtO⁻/EtOH), poi H₃O⁺",
+        scheme: "CH₃—CO—CH₂—COOEt",
+        kinetics: "Trascinata dalla deprotonazione finale (pKa 11)",
+        energyType: "two-step-exo",
+        why: "L'enolato dell'estere attacca una seconda molecola di estere formando un β-chetoestere; la deprotonazione del CH₂ centrale (pKa 11) spinge l'equilibrio a destra.",
+        steps: [
+          "EtO⁻ strappa un H⁺ in α all'estere formando l'enolato.",
+          "Attacco nucleofilo dell'enolato sul carbonile di una seconda molecola di acetato di etile.",
+          "Espulsione di EtO⁻ → β-chetoestere, subito deprotonato irreversibilmente dalla base."
+        ]
+      }
+    ];
+
+    const norm = (str) => (str || "").trim().toLowerCase().replace(/\s+/g, " ");
+
+    let challengeMode = false;
+    let selectedId = "ch4-cl2";
+    let selectedHypCat = null;
+    let activeStage = 0;
+    let activeGroup = "Tutti";
+    let revealed = false;
+    let logCount = 0;
+
+    const challengeModeBtn = document.getElementById("challengeModeBtn");
+    const challengeLabel = document.getElementById("challengeLabel");
+    const presetField = document.getElementById("presetField");
+    const presetSelect = document.getElementById("presetSelect");
+    const subSelect = document.getElementById("subSelect");
+    const reagSelect = document.getElementById("reagSelect");
+    const prodInput = document.getElementById("prodInput");
+    const studyMode = document.getElementById("studyMode");
+    const hintBox = document.getElementById("hintBox");
+    const hypGrid = document.getElementById("hypGrid");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const equationBar = document.getElementById("equationBar");
+    const validationBanner = document.getElementById("validationBanner");
+    const summaryBox = document.getElementById("summaryBox");
+    const vizGrid = document.getElementById("vizGrid");
+    const stageTabs = document.getElementById("stageTabs");
+    const mechSvgWrap = document.getElementById("mechSvgWrap");
+    const stageCaption = document.getElementById("stageCaption");
+    const energyMeta = document.getElementById("energyMeta");
+    const energySvgWrap = document.getElementById("energySvgWrap");
+    const filterPills = document.getElementById("filterPills");
+    const searchInput = document.getElementById("searchInput");
+    const catalogGrid = document.getElementById("catalogGrid");
+    const catCount = document.getElementById("catCount");
+    const logBody = document.getElementById("logBody");
+    const clearLogBtn = document.getElementById("clearLogBtn");
+
+    function initData() {
+      const subSet = [...new Set(REACTIONS.map(r => r.s))];
+      const reagSet = [...new Set(REACTIONS.map(r => r.r))];
+
+      subSelect.innerHTML = `<option value="">— Scegli substrato —</option>` +
+        subSet.map(s => `<option value="${s}">${s}</option>`).join("");
+      reagSelect.innerHTML = `<option value="">— Scegli reagente/i —</option>` +
+        reagSet.map(r => `<option value="${r}">${r}</option>`).join("");
+
+      presetSelect.innerHTML = REACTIONS.map(r =>
+        `<option value="${r.id}">[${r.g}] ${r.s} + ${r.r}</option>`
+      ).join("");
+
+      hypGrid.innerHTML = HYP_CATEGORIES.map(c => `
+        <button type="button" class="hyp-btn" data-cat="${c.id}">
+          <span class="hyp-title">${c.title}</span>
+          <span class="hyp-sub">${c.sub}</span>
+        </button>
+      `).join("");
+
+      hypGrid.querySelectorAll(".hyp-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedHypCat = btn.dataset.cat;
+          renderHypButtons();
+        });
+      });
+
+      const groups = ["Tutti", ...new Set(REACTIONS.map(r => r.g))];
+      filterPills.innerHTML = groups.map(g =>
+        `<button type="button" class="filter-pill ${g === activeGroup ? 'active' : ''}" data-group="${g}">${g}</button>`
+      ).join("");
+
+      filterPills.querySelectorAll(".filter-pill").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeGroup = btn.dataset.group;
+          filterPills.querySelectorAll(".filter-pill").forEach(b => b.classList.toggle("active", b.dataset.group === activeGroup));
+          renderCatalog();
+        });
+      });
+
+      catCount.textContent = `${REACTIONS.length} reazioni`;
+    }
+
+    function renderHypButtons() {
+      hypGrid.querySelectorAll(".hyp-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.cat === selectedHypCat);
+      });
+    }
+
+    function findMatch(sub, reag) {
+      const ns = norm(sub);
+      const nr = norm(reag);
+      return REACTIONS.find(rx => norm(rx.s) === ns && norm(rx.r) === nr) || null;
+    }
+
+    function setChallengeMode(enabled) {
+      challengeMode = enabled;
+      challengeModeBtn.classList.toggle("active", enabled);
+      challengeLabel.textContent = enabled ? "ON" : "OFF";
+      presetField.classList.toggle("hidden", enabled);
+      if (enabled) {
+        subSelect.value = "";
+        reagSelect.value = "";
+        prodInput.value = "";
+        selectedHypCat = null;
+        revealed = false;
+        renderHypButtons();
+        hintBox.innerHTML = `<strong>Modalità Scegli &amp; Ipotizza attiva:</strong> Scegli liberamente Substrato e Reagente/i dai menu a tendina, seleziona la classe di meccanismo nello Step 2 e premi Verifica!`;
+        renderPendingState();
+      } else {
+        loadReaction(REACTIONS.find(x => x.id === selectedId) || REACTIONS[0]);
+      }
+    }
+
+    function loadReaction(rx) {
+      selectedId = rx.id;
+      presetSelect.value = rx.id;
+      subSelect.value = rx.s;
+      reagSelect.value = rx.r;
+      prodInput.value = "";
+      selectedHypCat = null;
+      activeStage = 0;
+      revealed = false;
+      renderHypButtons();
+      hintBox.innerHTML = `<strong>${rx.g}:</strong> Reagenti caricati (<em>${rx.s} + ${rx.r}</em>). Formula la tua ipotesi nello Step 2 e premi Verifica!`;
+      renderPendingState(rx);
+      renderCatalog();
+    }
+
+    function renderPendingState(rx = null) {
+      const subText = subSelect.value || "Scegli substrato";
+      const reagText = reagSelect.value || "Scegli reagente";
+      const hypObj = HYP_CATEGORIES.find(c => c.id === selectedHypCat);
+      const hypBadge = hypObj ? ` (${hypObj.title})` : "";
+
+      equationBar.innerHTML = `
+        <span class="pill pill-sub">${subText}</span>
+        <span style="font-weight:700;color:#64748b;">+</span>
+        <span class="pill pill-reag">${reagText}</span>
+        <div class="arrow-col">
+          <span class="arrow-sym">→</span>
+        </div>
+        <span class="pill pill-unknown">?${hypBadge}</span>
+      `;
+      validationBanner.innerHTML = `
+        <div class="banner warn">
+          <div class="banner-title">🎯 Formula la tua ipotesi nello Step 2</div>
+          <p class="banner-desc">Seleziona la classe di reazione${rx ? '' : ' (dopo aver scelto substrato e reagente)'} e, se vuoi, scrivi il prodotto ipotizzato, poi premi <strong>Verifica Ipotesi &amp; Simula</strong>.</p>
+        </div>
+      `;
+      summaryBox.innerHTML = `<div class="summary-label">Risultato nascosto</div><p class="summary-why">Premi <strong>Verifica Ipotesi &amp; Simula</strong> per svelare il prodotto atteso, il meccanismo passo-passo e il profilo energetico.</p>`;
+      vizGrid.classList.add("hidden");
+    }
+
+    function renderMechSvg(rx, stageIdx) {
+      const total = rx.steps.length;
+      const isFinal = stageIdx >= total - 1;
+      return `
+        <svg viewBox="0 0 360 155" width="100%" style="background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+          <defs>
+            <marker id="arrBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#2563eb"/>
+            </marker>
+            <marker id="arrRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <text x="180" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#1e3a8a">
+            Stadio ${stageIdx + 1} di ${total} — ${rx.t.slice(0, 36)}
+          </text>
+          <rect x="14" y="42" width="132" height="58" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="80" y="67" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1d4ed8">${rx.s.slice(0, 20)}</text>
+          <text x="80" y="85" text-anchor="middle" font-size="10.5" fill="#6d28d9">+ ${rx.r.slice(0, 20)}</text>
+
+          <path d="M150,71 L202,71" stroke="#475569" stroke-width="2" marker-end="url(#arrBlue)"/>
+          <path d="M115,42 Q145,18 175,45" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="${isFinal ? '0' : '4 2'}" marker-end="url(#arrBlue)"/>
+          ${!isFinal ? `<path d="M225,100 Q245,124 270,104" fill="none" stroke="#dc2626" stroke-width="1.6" marker-end="url(#arrRed)"/>` : ''}
+
+          <rect x="210" y="42" width="136" height="58" rx="10" fill="${isFinal ? '#f0fdf4' : '#fffbeb'}" stroke="${isFinal ? '#16a34a' : '#d97706'}" stroke-width="1.5"/>
+          <text x="278" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="${isFinal ? '#15803d' : '#b45309'}">
+            ${isFinal ? rx.p.slice(0, 21) : 'Intermedio / Radicale'}
+          </text>
+          <text x="278" y="85" text-anchor="middle" font-size="10.5" fill="#334155">
+            ${isFinal ? rx.scheme.slice(0, 22) : 'Trasferimento e⁻ / H'}
+          </text>
+          <text x="180" y="138" text-anchor="middle" font-size="10.5" fill="#64748b">${rx.c.slice(0, 56)}</text>
+        </svg>
+      `;
+    }
+
+    function renderEnergySvg(rx) {
+      const isTwoStep = rx.energyType === "two-step-exo";
+      const isEq = rx.energyType === "equilibrium";
+      const isEndo = rx.energyType === "endothermic";
+      const pathD = isTwoStep
+        ? "M 32 108 Q 75 25, 118 72 Q 160 36, 205 122 L 260 122"
+        : isEndo
+          ? "M 32 122 Q 130 20, 215 78 L 265 78"
+          : isEq
+            ? "M 32 105 Q 130 22, 235 103 L 265 103"
+            : "M 32 95 Q 130 20, 235 125 L 265 125";
+      return `
+        <svg viewBox="0 0 290 155" width="100%" style="background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+          <line x1="28" y1="15" x2="28" y2="135" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="28" y1="135" x2="275" y2="135" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="14" y="80" text-anchor="middle" transform="rotate(-90 14 80)" font-size="10" fill="#64748b">Energia (ΔG)</text>
+          <text x="152" y="149" text-anchor="middle" font-size="10" fill="#64748b">Coordinata di reazione</text>
+          <path d="${pathD}" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+          ${isTwoStep ? `
+            <circle cx="76" cy="54" r="3.5" fill="#dc2626"/>
+            <text x="76" y="44" text-anchor="middle" font-size="9.5" font-weight="700" fill="#dc2626">TS1</text>
+            <circle cx="118" cy="72" r="3.5" fill="#d97706"/>
+            <text x="118" y="88" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">Int.</text>
+            <circle cx="160" cy="59" r="3.5" fill="#dc2626"/>
+            <text x="160" y="48" text-anchor="middle" font-size="9.5" font-weight="700" fill="#dc2626">TS2</text>
+          ` : `
+            <circle cx="132" cy="54" r="3.5" fill="#dc2626"/>
+            <text x="132" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#dc2626">TS</text>
+          `}
+          <text x="45" y="${isEndo ? 114 : 122}" font-size="9.5" fill="#334155">Reagenti</text>
+          <text x="220" y="${isEndo ? 70 : 116}" font-size="9.5" fill="#15803d" font-weight="700">Prodotti</text>
+        </svg>
+      `;
+    }
+
+    function renderResult(rx, fromVerify) {
+      const subText = subSelect.value || "—";
+      const reagText = reagSelect.value || "—";
+      const hypProd = prodInput.value.trim();
+      const hypObj = HYP_CATEGORIES.find(c => c.id === selectedHypCat);
+      const hypTitle = hypObj ? hypObj.title : "Nessuna selezione";
+
+      if (!rx) {
+        vizGrid.classList.add("hidden");
+        equationBar.innerHTML = `
+          <span class="pill pill-sub">${subText}</span>
+          <span>+</span>
+          <span class="pill pill-reag">${reagText}</span>
+          <div class="arrow-col"><span class="arrow-sym">→</span></div>
+          <span class="pill pill-unknown">? Combinazione non implementata</span>
+        `;
+        validationBanner.innerHTML = `
+          <div class="banner warn">
+            <div class="banner-title">⚠️ Combinazione non presente negli esempi implementati</div>
+            <p class="banner-desc">Questa coppia substrato + reagente non è tra le ${REACTIONS.length} reazioni del programma. Consulta il catalogo qui sotto per vedere le coppie valide.</p>
+          </div>
+        `;
+        summaryBox.innerHTML = `<div class="summary-label">Suggerimento</div><p class="summary-why">Prova ad esempio <strong>etano + Br2 / hν (luce UV)</strong> oppure <strong>etano + Δ, catalizzatore (Pt / Cr2O3)</strong>.</p>`;
+        return;
+      }
+
+      if (!selectedHypCat && fromVerify) {
+        vizGrid.classList.add("hidden");
+        validationBanner.innerHTML = `
+          <div class="banner warn">
+            <div class="banner-title">⚠️ Seleziona prima una classe di reazione nello Step 2</div>
+            <p class="banner-desc">Scegli un meccanismo (es. Sostituzione radicalica, Deidrogenazione alcani, Addizione elettrofila...) prima di verificare.</p>
+          </div>
+        `;
+        return;
+      }
+
+      revealed = true;
+      vizGrid.classList.remove("hidden");
+
+      const catMatch = selectedHypCat === rx.cat;
+      const prodMatch = !hypProd || norm(hypProd) === norm(rx.p);
+      const allOk = catMatch && prodMatch;
+
+      equationBar.innerHTML = `
+        <span class="pill pill-sub">${rx.s}</span>
+        <span style="font-weight:700;color:#64748b;">+</span>
+        <span class="pill pill-reag">${rx.r}</span>
+        <div class="arrow-col">
+          <span class="pill pill-cond">${rx.c}</span>
+          <span class="arrow-sym">→</span>
+        </div>
+        <span class="pill pill-prod">${rx.p}</span>
+      `;
+
+      if (fromVerify) {
+        if (allOk) {
+          validationBanner.innerHTML = `
+            <div class="banner success">
+              <div class="banner-title">✅ Ipotesi corretta! (${rx.t})</div>
+              <p class="banner-desc">La tua previsione corrisponde sia al meccanismo sia al prodotto principale atteso.</p>
+            </div>
+          `;
+        } else {
+          validationBanner.innerHTML = `
+            <div class="banner error">
+              <div class="banner-title">❌ Ipotesi da rivedere</div>
+              <p class="banner-desc">Hai ipotizzato <strong>${hypTitle}</strong>${hypProd ? ` (${hypProd})` : ''}, ma il sistema segue <strong>${rx.t}</strong> formando <strong>${rx.p}</strong>.</p>
+            </div>
+          `;
+        }
+
+        logCount += 1;
+        if (logCount === 1) logBody.innerHTML = "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${logCount}</td>
+          <td><strong>${rx.s}</strong> + ${rx.r}</td>
+          <td>${hypTitle}${hypProd ? ` (${hypProd})` : ''}</td>
+          <td>${rx.p} <span class="formula-tag">${rx.f}</span></td>
+          <td><span class="status-chip ${allOk ? 'status-ok' : 'status-err'}">${allOk ? 'Corretta' : 'Da rivedere'}</span></td>
+        `;
+        logBody.prepend(tr);
+      }
+
+      summaryBox.innerHTML = `
+        <div class="summary-label">Prodotto principale, Formula &amp; Regio/Stereoselettività</div>
+        <div class="summary-main">
+          <span>${rx.p}</span>
+          <span class="formula-tag">${rx.f}</span>
+          <span class="formula-tag" style="background:#eff6ff;color:#1d4ed8;">${rx.scheme}</span>
+        </div>
+        <p class="summary-why">${rx.why}</p>
+      `;
+
+      const showSteps = studyMode.checked;
+      if (activeStage >= rx.steps.length) activeStage = 0;
+      stageTabs.innerHTML = showSteps
+        ? rx.steps.map((_, idx) => `<button type="button" class="stage-tab ${idx === activeStage ? 'active' : ''}" data-idx="${idx}">Stadio ${idx + 1}</button>`).join("")
+        : `<span style="font-size:12px;color:var(--muted);">Attiva "Modalità Studio" in alto per sfogliare gli stadi.</span>`;
+
+      stageTabs.querySelectorAll(".stage-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          activeStage = Number(tab.dataset.idx);
+          renderResult(rx, false);
+        });
+      });
+
+      mechSvgWrap.innerHTML = renderMechSvg(rx, activeStage);
+      stageCaption.textContent = rx.steps[activeStage];
+      energyMeta.textContent = rx.kinetics;
+      energySvgWrap.innerHTML = renderEnergySvg(rx);
+    }
+
+    function renderCatalog() {
+      const q = norm(searchInput.value);
+      const list = REACTIONS.filter(rx =>
+        (activeGroup === "Tutti" || rx.g === activeGroup) &&
+        (!q || norm([rx.s, rx.r, rx.p, rx.t, rx.g].join(" ")).includes(q))
+      );
+      catalogGrid.innerHTML = list.map(rx => `
+        <button type="button" class="cat-card ${rx.id === selectedId ? 'active' : ''}" data-id="${rx.id}">
+          <span class="cat-badge">${rx.g}</span>
+          <span class="cat-title">${rx.s} + ${rx.r} → ${rx.p}</span>
+          <span class="cat-sub">${rx.t} • ${rx.f}</span>
+        </button>
+      `).join("");
+
+      catalogGrid.querySelectorAll(".cat-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const rx = REACTIONS.find(x => x.id === card.dataset.id);
+          if (rx) {
+            if (challengeMode) setChallengeMode(false);
+            loadReaction(rx);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        });
+      });
+    }
+
+    challengeModeBtn.addEventListener("click", () => setChallengeMode(!challengeMode));
+
+    presetSelect.addEventListener("change", () => {
+      const rx = REACTIONS.find(x => x.id === presetSelect.value);
+      if (rx) loadReaction(rx);
+    });
+
+    subSelect.addEventListener("change", () => {
+      revealed = false;
+      renderPendingState();
+    });
+    reagSelect.addEventListener("change", () => {
+      revealed = false;
+      renderPendingState();
+    });
+
+    verifyBtn.addEventListener("click", () => {
+      const match = findMatch(subSelect.value, reagSelect.value);
+      renderResult(match, true);
+    });
+
+    studyMode.addEventListener("change", () => {
+      if (!revealed) return;
+      const match = findMatch(subSelect.value, reagSelect.value) || REACTIONS.find(x => x.id === selectedId);
+      if (match) renderResult(match, false);
+    });
+
+    searchInput.addEventListener("input", renderCatalog);
+
+    clearLogBtn.addEventListener("click", () => {
+      logCount = 0;
+      logBody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;">Nessuna simulazione registrata in questa sessione. Premi "Verifica Ipotesi &amp; Simula".</td></tr>`;
+    });
+
+    initData();
+    loadReaction(REACTIONS[0]);
+    renderCatalog();
+  </script>
+</body>
+</html>
